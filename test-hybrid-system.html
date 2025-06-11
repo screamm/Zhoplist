@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Hybrid SessionID System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .session-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .primary { background: #2196f3; color: white; }
+        .secondary { background: #f5f5f5; color: #333; }
+        .success { background: #4caf50; color: white; }
+        .danger { background: #f44336; color: white; }
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .demo-todos {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .todo-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 4px;
+            border-left: 4px solid #2196f3;
+        }
+        .error {
+            color: #f44336;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .success-msg {
+            color: #4caf50;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test: Hybrid SessionID System</h1>
+        <p>Detta testar vår hybrid-lösning för multi-användare utan inloggning.</p>
+        
+        <div class="session-info">
+            <h3>📋 Nuvarande Session</h3>
+            <div><strong>SessionID:</strong> <span id="sessionId">-</span></div>
+            <div><strong>Typ:</strong> <span id="sessionType">-</span></div>
+            <div><strong>Lista-namn:</strong> <span id="listName">-</span></div>
+        </div>
+
+        <div class="controls">
+            <button class="primary" onclick="showCurrentSession()">🔄 Uppdatera Info</button>
+            <button class="secondary" onclick="copySessionId()">📋 Kopiera SessionID</button>
+            <button class="success" onclick="generateNewSession()">🆕 Ny Automatisk Session</button>
+        </div>
+
+        <hr>
+
+        <h3>🔗 Skapa/Byt Lista-kod</h3>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="listCodeInput" placeholder="t.ex. familj-2024" style="flex: 1;">
+            <button class="primary" onclick="setListCode()">Byt Till Lista-kod</button>
+            <button class="secondary" onclick="suggestListCode()">Föreslå</button>
+        </div>
+        <div id="listCodeError" class="error"></div>
+        <div id="listCodeSuccess" class="success-msg"></div>
+
+        <hr>
+
+        <h3>📤 Dela Lista</h3>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="shareUrl" readonly style="flex: 1;">
+            <button class="success" onclick="copyShareUrl()">Kopiera Länk</button>
+        </div>
+
+        <hr>
+
+        <h3>🔙 Återgå till Automatisk</h3>
+        <button class="danger" onclick="clearCustomListCode()">Tillbaka till Automatisk SessionID</button>
+
+        <div class="demo-todos">
+            <h4>📝 Simulerade Todos (för denna session)</h4>
+            <div id="todosList">
+                <div class="todo-item">☐ Mjölk (sessionID: <span class="session-ref">loading...</span>)</div>
+                <div class="todo-item">☐ Bröd (sessionID: <span class="session-ref">loading...</span>)</div>
+                <div class="todo-item">☐ Äpplen (sessionID: <span class="session-ref">loading...</span>)</div>
+            </div>
+            <p><em>I riktiga appen skulle dessa todos vara filtrerade på sessionID.</em></p>
+        </div>
+
+        <hr>
+
+        <h3>💡 Testa Scenarion</h3>
+        <ol>
+            <li><strong>Automatisk Session:</strong> Öppna sidan i ny incognito-flik - ska få ny automatisk sessionID</li>
+            <li><strong>Delbar Lista:</strong> Skapa lista-kod "test-2024" och kopiera länken</li>
+            <li><strong>Multi-Enhet:</strong> Öppna länken i annan browser - ska använda samma lista-kod</li>
+            <li><strong>Återgå:</strong> Tryck "Tillbaka till Automatisk" - ska återgå till UUID-sessionID</li>
+        </ol>
+    </div>
+
+    <!-- UUID Library (simplified version for testing) -->
+    <script>
+        // Simplified UUID v4 generator for testing
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Simulate SessionManager (based on our real implementation)
+        class TestSessionManager {
+            constructor() {
+                this.SESSION_STORAGE_KEY = 'zhoplist-session-id';
+                this.CUSTOM_LIST_CODE_KEY = 'zhoplist-custom-list-code';
+                this.currentSessionId = this.initializeSession();
+                this.isCustomListCode = false;
+                this.listeners = [];
+                this.checkUrlForListCode();
+            }
+
+            initializeSession() {
+                // Check för manuell lista-kod först
+                const customListCode = localStorage.getItem(this.CUSTOM_LIST_CODE_KEY);
+                if (customListCode) {
+                    this.isCustomListCode = true;
+                    return customListCode;
+                }
+
+                // Annars använd automatisk sessionID
+                let sessionId = localStorage.getItem(this.SESSION_STORAGE_KEY);
+                if (!sessionId) {
+                    sessionId = generateUUID();
+                    localStorage.setItem(this.SESSION_STORAGE_KEY, sessionId);
+                    console.log('🆔 Ny sessionID genererad:', sessionId);
+                } else {
+                    console.log('🆔 Befintlig sessionID hittad:', sessionId);
+                }
+
+                this.isCustomListCode = false;
+                return sessionId;
+            }
+
+            checkUrlForListCode() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlListCode = urlParams.get('lista');
+                
+                if (urlListCode) {
+                    const validation = this.validateListCode(urlListCode);
+                    if (validation.valid) {
+                        try {
+                            this.setCustomListCode(urlListCode);
+                            console.log('🆔 Laddade lista från URL:', urlListCode);
+                            
+                            // Rensa URL utan att ladda om sidan
+                            const newUrl = window.location.origin + window.location.pathname;
+                            window.history.replaceState({}, '', newUrl);
+                        } catch (error) {
+                            console.warn('Kunde inte använda lista-kod från URL:', error);
+                        }
+                    } else {
+                        console.warn('Ogiltig lista-kod i URL:', validation.error);
+                    }
+                }
+            }
+
+            getSessionId() {
+                return this.currentSessionId;
+            }
+
+            getSessionInfo() {
+                return {
+                    sessionId: this.currentSessionId,
+                    isCustomListCode: this.isCustomListCode,
+                    listName: this.isCustomListCode ? this.currentSessionId : undefined,
+                };
+            }
+
+            setCustomListCode(listCode) {
+                if (!listCode.trim()) {
+                    throw new Error('Lista-kod kan inte vara tom');
+                }
+
+                const cleanListCode = listCode.trim().toLowerCase();
+                
+                if (!/^[a-z0-9-]+$/.test(cleanListCode)) {
+                    throw new Error('Lista-kod får endast innehålla bokstäver, siffror och bindestreck');
+                }
+
+                if (cleanListCode.length < 3) {
+                    throw new Error('Lista-kod måste vara minst 3 tecken');
+                }
+
+                this.currentSessionId = cleanListCode;
+                this.isCustomListCode = true;
+
+                localStorage.setItem(this.CUSTOM_LIST_CODE_KEY, cleanListCode);
+                
+                console.log('🆔 Bytte till manuell lista-kod:', cleanListCode);
+                this.notifyListeners();
+            }
+
+            clearCustomListCode() {
+                localStorage.removeItem(this.CUSTOM_LIST_CODE_KEY);
+                
+                let autoSessionId = localStorage.getItem(this.SESSION_STORAGE_KEY);
+                if (!autoSessionId) {
+                    autoSessionId = generateUUID();
+                    localStorage.setItem(this.SESSION_STORAGE_KEY, autoSessionId);
+                }
+
+                this.currentSessionId = autoSessionId;
+                this.isCustomListCode = false;
+
+                console.log('🆔 Bytte tillbaka till automatisk sessionID:', autoSessionId);
+                this.notifyListeners();
+            }
+
+            generateNewSession() {
+                const newSessionId = generateUUID();
+                localStorage.setItem(this.SESSION_STORAGE_KEY, newSessionId);
+                localStorage.removeItem(this.CUSTOM_LIST_CODE_KEY);
+
+                this.currentSessionId = newSessionId;
+                this.isCustomListCode = false;
+
+                console.log('🆔 Genererad ny sessionID:', newSessionId);
+                this.notifyListeners();
+            }
+
+            validateListCode(listCode) {
+                if (!listCode.trim()) {
+                    return { valid: false, error: 'Lista-kod kan inte vara tom' };
+                }
+
+                const cleanListCode = listCode.trim().toLowerCase();
+                
+                if (!/^[a-z0-9-]+$/.test(cleanListCode)) {
+                    return { valid: false, error: 'Endast bokstäver, siffror och bindestreck tillåtna' };
+                }
+
+                if (cleanListCode.length < 3) {
+                    return { valid: false, error: 'Minst 3 tecken krävs' };
+                }
+
+                if (cleanListCode.length > 50) {
+                    return { valid: false, error: 'Max 50 tecken tillåtna' };
+                }
+
+                return { valid: true };
+            }
+
+            static suggestListCode(input) {
+                return input
+                    .toLowerCase()
+                    .replace(/[^a-z0-9-]/g, '-')
+                    .replace(/-+/g, '-')
+                    .replace(/^-|-$/g, '')
+                    .substring(0, 50);
+            }
+
+            onSessionChange(callback) {
+                this.listeners.push(callback);
+                return () => {
+                    const index = this.listeners.indexOf(callback);
+                    if (index > -1) {
+                        this.listeners.splice(index, 1);
+                    }
+                };
+            }
+
+            notifyListeners() {
+                const sessionInfo = this.getSessionInfo();
+                this.listeners.forEach(callback => callback(sessionInfo));
+            }
+        }
+
+        // Initialize session manager
+        const sessionManager = new TestSessionManager();
+
+        // UI Functions
+        function showCurrentSession() {
+            const info = sessionManager.getSessionInfo();
+            document.getElementById('sessionId').textContent = info.sessionId;
+            document.getElementById('sessionType').textContent = info.isCustomListCode ? 'Manuell Lista-kod' : 'Automatisk UUID';
+            document.getElementById('listName').textContent = info.listName || 'Ingen (automatisk)';
+            
+            // Update share URL
+            const shareUrl = `${window.location.origin}${window.location.pathname}?lista=${info.sessionId}`;
+            document.getElementById('shareUrl').value = shareUrl;
+
+            // Update demo todos with current sessionID
+            const sessionRefs = document.querySelectorAll('.session-ref');
+            sessionRefs.forEach(ref => {
+                ref.textContent = info.sessionId.substring(0, 8) + '...';
+            });
+
+            clearMessages();
+        }
+
+        function copySessionId() {
+            const sessionId = sessionManager.getSessionId();
+            navigator.clipboard.writeText(sessionId).then(() => {
+                showSuccess('SessionID kopierad!');
+            });
+        }
+
+        function generateNewSession() {
+            sessionManager.generateNewSession();
+            showCurrentSession();
+            showSuccess('Ny automatisk session skapad!');
+        }
+
+        function setListCode() {
+            const input = document.getElementById('listCodeInput');
+            const listCode = input.value.trim();
+            
+            if (!listCode) {
+                showError('Lista-kod kan inte vara tom');
+                return;
+            }
+
+            try {
+                sessionManager.setCustomListCode(listCode);
+                input.value = '';
+                showCurrentSession();
+                showSuccess(`Bytte till lista-kod: ${listCode}`);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function suggestListCode() {
+            const input = document.getElementById('listCodeInput');
+            const suggested = TestSessionManager.suggestListCode(input.value || 'min-lista');
+            input.value = suggested;
+        }
+
+        function copyShareUrl() {
+            const shareUrl = document.getElementById('shareUrl').value;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showSuccess('Dela-länk kopierad!');
+            });
+        }
+
+        function clearCustomListCode() {
+            sessionManager.clearCustomListCode();
+            showCurrentSession();
+            showSuccess('Återgick till automatisk sessionID');
+        }
+
+        function showError(message) {
+            document.getElementById('listCodeError').textContent = message;
+            document.getElementById('listCodeSuccess').textContent = '';
+        }
+
+        function showSuccess(message) {
+            document.getElementById('listCodeSuccess').textContent = message;
+            document.getElementById('listCodeError').textContent = '';
+        }
+
+        function clearMessages() {
+            document.getElementById('listCodeError').textContent = '';
+            document.getElementById('listCodeSuccess').textContent = '';
+        }
+
+        // Listen for session changes
+        sessionManager.onSessionChange(() => {
+            console.log('Session changed!');
+            showCurrentSession();
+        });
+
+        // Initialize UI
+        window.addEventListener('load', () => {
+            showCurrentSession();
+            console.log('🧪 Hybrid SessionID Test redo!');
+        });
+    </script>
+</body>
+</html> 

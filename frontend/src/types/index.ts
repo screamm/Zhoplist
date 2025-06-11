@@ -10,6 +10,7 @@ export interface Todo {
   updatedAt: string;
   dueDate?: string;
   tags: string[];
+  userSession: string; // SessionID eller lista-kod för multi-user support
 }
 
 // Form data for creating/updating todos

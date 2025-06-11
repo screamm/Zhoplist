@@ -23,6 +23,7 @@ interface Todo {
 	updatedAt: string;
 	dueDate?: string;
 	tags: string[];
+	userSession: string; // SessionID eller lista-kod för multi-user support
 }
 
 interface Env {
@@ -61,12 +62,23 @@ function handleOptions() {
 	});
 }
 
-async function getAllTodos(db: D1Database): Promise<Response> {
+// Extrahera sessionID från request headers
+function getSessionId(request: Request): string | null {
+	return request.headers.get('X-Session-ID');
+}
+
+async function getAllTodos(db: D1Database, request: Request): Promise<Response> {
 	try {
+		const sessionId = getSessionId(request);
+		if (!sessionId) {
+			return errorResponse('Session ID is required', 400);
+		}
+
 		const { results } = await db.prepare(`
 			SELECT * FROM todos 
+			WHERE user_session = ?
 			ORDER BY created_at DESC
-		`).all();
+		`).bind(sessionId).all();
 
 		const todos = results?.map(todo => ({
 			id: todo.id,
@@ -79,6 +91,7 @@ async function getAllTodos(db: D1Database): Promise<Response> {
 			updatedAt: todo.updated_at,
 			dueDate: todo.due_date,
 			tags: todo.tags ? JSON.parse(todo.tags as string) : [],
+			userSession: todo.user_session,
 		})) || [];
 
 		return jsonResponse(todos);
@@ -90,6 +103,11 @@ async function getAllTodos(db: D1Database): Promise<Response> {
 
 async function createTodo(request: Request, db: D1Database): Promise<Response> {
 	try {
+		const sessionId = getSessionId(request);
+		if (!sessionId) {
+			return errorResponse('Session ID is required', 400);
+		}
+
 		const body = await request.json() as Partial<Todo>;
 		
 		if (!body.title?.trim()) {
@@ -107,11 +125,12 @@ async function createTodo(request: Request, db: D1Database): Promise<Response> {
 			updated_at: new Date().toISOString(),
 			due_date: body.dueDate || null,
 			tags: JSON.stringify(body.tags || []),
+			user_session: sessionId,
 		};
 
 		await db.prepare(`
-			INSERT INTO todos (id, title, description, completed, priority, category, created_at, updated_at, due_date, tags)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			INSERT INTO todos (id, title, description, completed, priority, category, created_at, updated_at, due_date, tags, user_session)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`).bind(
 			todo.id,
 			todo.title,
@@ -122,7 +141,8 @@ async function createTodo(request: Request, db: D1Database): Promise<Response> {
 			todo.created_at,
 			todo.updated_at,
 			todo.due_date,
-			todo.tags
+			todo.tags,
+			todo.user_session
 		).run();
 
 		const responseData = {
@@ -136,6 +156,7 @@ async function createTodo(request: Request, db: D1Database): Promise<Response> {
 			updatedAt: todo.updated_at,
 			dueDate: todo.due_date,
 			tags: JSON.parse(todo.tags),
+			userSession: todo.user_session,
 		};
 
 		return jsonResponse(responseData, 201);
@@ -147,6 +168,11 @@ async function createTodo(request: Request, db: D1Database): Promise<Response> {
 
 async function updateTodo(request: Request, db: D1Database, id: string): Promise<Response> {
 	try {
+		const sessionId = getSessionId(request);
+		if (!sessionId) {
+			return errorResponse('Session ID is required', 400);
+		}
+
 		const body = await request.json() as Partial<Todo>;
 		
 		if (!body.title?.trim()) {
@@ -158,7 +184,7 @@ async function updateTodo(request: Request, db: D1Database, id: string): Promise
 		const result = await db.prepare(`
 			UPDATE todos 
 			SET title = ?, description = ?, priority = ?, category = ?, updated_at = ?, due_date = ?, tags = ?
-			WHERE id = ?
+			WHERE id = ? AND user_session = ?
 		`).bind(
 			body.title.trim(),
 			body.description?.trim() || null,
@@ -167,11 +193,12 @@ async function updateTodo(request: Request, db: D1Database, id: string): Promise
 			updated_at,
 			body.dueDate || null,
 			JSON.stringify(body.tags || []),
-			id
+			id,
+			sessionId
 		).run();
 
 		if (result.changes === 0) {
-			return errorResponse('Todo not found', 404);
+			return errorResponse('Todo not found or access denied', 404);
 		}
 
 		return jsonResponse({ message: 'Todo updated successfully' });
@@ -181,12 +208,17 @@ async function updateTodo(request: Request, db: D1Database, id: string): Promise
 	}
 }
 
-async function deleteTodo(db: D1Database, id: string): Promise<Response> {
+async function deleteTodo(db: D1Database, request: Request, id: string): Promise<Response> {
 	try {
-		const result = await db.prepare('DELETE FROM todos WHERE id = ?').bind(id).run();
+		const sessionId = getSessionId(request);
+		if (!sessionId) {
+			return errorResponse('Session ID is required', 400);
+		}
+
+		const result = await db.prepare('DELETE FROM todos WHERE id = ? AND user_session = ?').bind(id, sessionId).run();
 		
 		if (result.changes === 0) {
-			return errorResponse('Todo not found', 404);
+			return errorResponse('Todo not found or access denied', 404);
 		}
 
 		return jsonResponse({ message: 'Todo deleted successfully' });
@@ -196,9 +228,14 @@ async function deleteTodo(db: D1Database, id: string): Promise<Response> {
 	}
 }
 
-async function deleteCompletedTodos(db: D1Database): Promise<Response> {
+async function deleteCompletedTodos(db: D1Database, request: Request): Promise<Response> {
 	try {
-		const result = await db.prepare('DELETE FROM todos WHERE completed = true').run();
+		const sessionId = getSessionId(request);
+		if (!sessionId) {
+			return errorResponse('Session ID is required', 400);
+		}
+
+		const result = await db.prepare('DELETE FROM todos WHERE completed = true AND user_session = ?').bind(sessionId).run();
 		
 		return jsonResponse({ 
 			message: 'Completed todos deleted successfully',
@@ -210,18 +247,23 @@ async function deleteCompletedTodos(db: D1Database): Promise<Response> {
 	}
 }
 
-async function toggleTodo(db: D1Database, id: string): Promise<Response> {
+async function toggleTodo(db: D1Database, request: Request, id: string): Promise<Response> {
 	try {
+		const sessionId = getSessionId(request);
+		if (!sessionId) {
+			return errorResponse('Session ID is required', 400);
+		}
+
 		const updated_at = new Date().toISOString();
 		
 		const result = await db.prepare(`
 			UPDATE todos 
 			SET completed = NOT completed, updated_at = ?
-			WHERE id = ?
-		`).bind(updated_at, id).run();
+			WHERE id = ? AND user_session = ?
+		`).bind(updated_at, id, sessionId).run();
 
 		if (result.changes === 0) {
-			return errorResponse('Todo not found', 404);
+			return errorResponse('Todo not found or access denied', 404);
 		}
 
 		return jsonResponse({ message: 'Todo toggled successfully' });
@@ -249,7 +291,7 @@ export default {
 			try {
 				// GET /api/todos - Get all todos
 				if (method === 'GET' && pathParts.length === 3) {
-					return await getAllTodos(env.DB);
+					return await getAllTodos(env.DB, request);
 				}
 				
 				// POST /api/todos - Create new todo
@@ -259,7 +301,7 @@ export default {
 				
 				// DELETE /api/todos/completed - Delete all completed todos
 				if (method === 'DELETE' && pathParts[3] === 'completed') {
-					return await deleteCompletedTodos(env.DB);
+					return await deleteCompletedTodos(env.DB, request);
 				}
 				
 				const todoId = pathParts[3];
@@ -274,12 +316,12 @@ export default {
 				
 				// DELETE /api/todos/:id - Delete specific todo
 				if (method === 'DELETE') {
-					return await deleteTodo(env.DB, todoId);
+					return await deleteTodo(env.DB, request, todoId);
 				}
 				
 				// PATCH /api/todos/:id/toggle - Toggle completed status
 				if (method === 'PATCH' && pathParts[4] === 'toggle') {
-					return await toggleTodo(env.DB, todoId);
+					return await toggleTodo(env.DB, request, todoId);
 				}
 				
 				return errorResponse('Method not allowed', 405);

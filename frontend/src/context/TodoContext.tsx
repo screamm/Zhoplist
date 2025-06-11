@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode } fr
 import type { Todo, TodoFormData, TodoFilter, TodoSort, ToastNotification } from '../types/index.js';
 import { api } from '../utils/api.js';
 import { v4 as uuidv4 } from 'uuid';
+import { sessionManager } from '../utils/sessionManager.js';
 
 // Add at the top after imports
 const STORAGE_KEY = 'shopping-list-todos';
@@ -271,6 +272,17 @@ export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Load todos on mount
   useEffect(() => {
     loadTodos();
+  }, [loadTodos]);
+
+  // Listen for sessionID changes and reload todos
+  useEffect(() => {
+    const unsubscribe = sessionManager.onSessionChange(() => {
+      // När sessionID ändras, ladda nya todos
+      dispatch({ type: 'SET_TODOS', payload: [] }); // Rensa gamla todos
+      loadTodos(); // Ladda nya todos för ny session
+    });
+    
+    return unsubscribe;
   }, [loadTodos]);
 
   const createTodo = async (todoData: TodoFormData) => {

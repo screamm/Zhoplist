@@ -97,25 +97,43 @@ CREATE TABLE todos (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   due_date DATETIME,
-  tags TEXT -- JSON array som string
+  tags TEXT, -- JSON array som string
+  user_session TEXT NOT NULL -- SessionID eller lista-kod för användaridentifiering
 );
 
 CREATE INDEX idx_completed ON todos(completed);
 CREATE INDEX idx_created_at ON todos(created_at DESC);
 CREATE INDEX idx_priority ON todos(priority DESC);
+CREATE INDEX idx_user_session ON todos(user_session); -- För att filtrera per användare
 ```
+
+### User Sessions (Hybrid-lösning) 🆕
+**Automatisk SessionID**:
+- Frontend genererar UUID automatiskt för nya användare
+- Sparas i localStorage för samma browser/enhet
+- Används som default för all todo-hantering
+
+**Manuell Lista-kod**:
+- Användaren kan skapa/ange egen lista-kod (t.ex. "familj-2024")
+- Fungerar över alla enheter och browsers
+- Kan delas med andra personer
+- Ersätter den automatiska sessionID när angiven
 
 ## 🔧 API Endpoints ✅
 
 ### REST API Structure
 ```
-GET    /api/todos          - Hämta alla todos ✅
-POST   /api/todos          - Skapa ny todo ✅
+GET    /api/todos          - Hämta alla todos för sessionID ✅
+POST   /api/todos          - Skapa ny todo med sessionID ✅
 PUT    /api/todos/:id      - Uppdatera todo ✅
 DELETE /api/todos/:id      - Ta bort specifik todo ✅
-DELETE /api/todos/completed - Ta bort alla completed todos ✅
+DELETE /api/todos/completed - Ta bort alla completed todos för sessionID ✅
 PATCH  /api/todos/:id/toggle - Toggle completed status ✅
 ```
+
+**Header för SessionID**: Alla API-calls skickar `X-Session-ID` header med antingen:
+- Automatisk UUID från localStorage
+- Manuell lista-kod från användaren
 
 ### Response Format ✅
 ```typescript
@@ -144,6 +162,10 @@ interface Todo {
 6. **Search/Filter**: Top search bar med real-time filtering ✅
 7. **Categories**: Color-coded kategorier med chips ✅
 8. **Priority**: Visual indicators (färger/ikoner) ✅
+9. **Multi-User Support**: Hybrid sessionID + lista-kod system 🆕
+   - Automatisk UUID-baserad sessionID för enkel användning
+   - Manuell lista-kod för multi-enhet och delning
+   - UI för att byta mellan listor och dela koder
 
 ### Nice-to-Have Features ⚠️
 1. **Due Dates**: Kalender integration ✅

@@ -1,5 +1,6 @@
 import type { Todo, TodoFormData, APIResponse } from '../types/index.js';
 import { createMockAPI } from './mockData.js';
+import { sessionManager } from './sessionManager.js';
 
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
@@ -45,6 +46,7 @@ const apiRequest = async <T>(endpoint: string, options?: RequestInit): Promise<T
     const response = await fetchWithTimeout(`${API_BASE_URL}${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
+        'X-Session-ID': sessionManager.getSessionId(),
         ...options?.headers,
       },
       ...options,

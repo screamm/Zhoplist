@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { TodoFilter } from '../types/index.js';
 import { useTodo } from '../context/TodoContext';
+import { ListManager } from './ListManager';
 import { 
   FoodIcon, 
   MeatIcon, 
@@ -30,6 +31,7 @@ export const Header: React.FC = () => {
   const { state, setSearchQuery, setFilter } = useTodo();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [showListManager, setShowListManager] = useState(false);
 
   // Safety check for state
   if (!state) {
@@ -147,7 +149,11 @@ export const Header: React.FC = () => {
       <div className="px-6 py-8">
         {/* Top Bar */}
         <div className="flex items-center justify-between mb-8">
-          <button className="text-white/80 hover:text-white">
+          <button 
+            onClick={() => setShowListManager(true)}
+            className="text-white/80 hover:text-white transition-colors p-2 -m-2"
+            title="Hantera Lista"
+          >
             <MenuIcon size={20} color="currentColor" />
           </button>
           <h1 className="text-lg font-bold text-white tracking-wider">SHOPPING LIST</h1>
@@ -297,6 +303,12 @@ export const Header: React.FC = () => {
           })}
         </div>
       </div>
+
+      {/* ListManager Modal */}
+      <ListManager 
+        isOpen={showListManager} 
+        onClose={() => setShowListManager(false)} 
+      />
     </header>
   );
 }; 
