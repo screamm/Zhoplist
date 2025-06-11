@@ -1,0 +1,218 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles for mobile-first todo app */
+@layer base {
+  html {
+    font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-background text-text;
+    @apply min-h-screen overflow-x-hidden;
+    @apply antialiased;
+    margin: 0;
+    padding: 0;
+  }
+
+  * {
+    @apply border-white/10;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+}
+
+/* Glassmorphism utilities */
+@layer components {
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+
+  .glass-dark {
+    @apply bg-black/20 backdrop-blur-md border border-white/10;
+  }
+
+  .glass-surface {
+    @apply bg-surface/80 backdrop-blur-sm border border-white/5;
+  }
+
+  /* Mobile-first button styles */
+  .btn-primary {
+    @apply bg-primary text-white font-medium py-3 px-6 rounded-xl;
+    @apply shadow-lg shadow-primary/25 border border-primary/20;
+    @apply transition-all duration-200 ease-out;
+    @apply hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30;
+    @apply active:scale-95 active:shadow-sm;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background;
+  }
+
+  .btn-secondary {
+    @apply bg-surface text-text font-medium py-3 px-6 rounded-xl;
+    @apply border border-white/10 backdrop-blur-sm;
+    @apply transition-all duration-200 ease-out;
+    @apply hover:bg-white/5 hover:border-white/20;
+    @apply active:scale-95;
+    @apply focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-background;
+  }
+
+  /* FAB (Floating Action Button) */
+  .fab {
+    @apply fixed bottom-20 right-6 z-50;
+    @apply w-14 h-14 bg-primary rounded-full;
+    @apply flex items-center justify-center;
+    @apply shadow-lg shadow-primary/30;
+    @apply transition-all duration-300 ease-out;
+    @apply hover:scale-110 hover:shadow-xl hover:shadow-primary/40;
+    @apply active:scale-95;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background;
+  }
+
+  /* Bottom navigation */
+  .bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 z-40;
+    @apply bg-surface/90 backdrop-blur-lg border-t border-white/10;
+    @apply py-2 px-4;
+    @apply safe-area-inset-bottom;
+  }
+
+  /* Todo item styles */
+  .todo-item {
+    @apply glass-surface rounded-xl p-4 mb-3;
+    @apply transition-all duration-200 ease-out;
+    @apply hover:bg-white/5 hover:border-white/10;
+  }
+
+  .todo-completed {
+    @apply opacity-60;
+  }
+
+  .todo-title-completed {
+    @apply line-through text-muted;
+  }
+
+  /* Swipe gesture indicators */
+  .swipe-action {
+    @apply absolute inset-y-0 flex items-center justify-center;
+    @apply text-white font-medium text-sm;
+    @apply transition-all duration-200;
+  }
+
+  .swipe-delete {
+    @apply right-0 bg-red-500 rounded-r-xl px-6;
+  }
+
+  .swipe-complete {
+    @apply left-0 bg-success rounded-l-xl px-6;
+  }
+
+  /* Loading and skeleton styles */
+  .skeleton {
+    @apply animate-pulse bg-white/10 rounded;
+  }
+
+  /* Priority indicators */
+  .priority-low {
+    @apply border-l-4 border-l-blue-400;
+  }
+
+  .priority-medium {
+    @apply border-l-4 border-l-yellow-400;
+  }
+
+  .priority-high {
+    @apply border-l-4 border-l-red-400;
+  }
+
+  /* Mobile-optimized form controls */
+  .form-input {
+    @apply w-full bg-surface/50 border border-white/10 rounded-xl;
+    @apply px-4 py-3 text-text placeholder-muted;
+    @apply backdrop-blur-sm;
+    @apply transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50;
+    @apply focus:bg-surface/80;
+  }
+
+  .form-textarea {
+    @apply form-input min-h-[80px] resize-none;
+  }
+
+  /* Scroll area styling */
+  .scroll-area {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  }
+
+  .scroll-area::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .scroll-area::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scroll-area::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+  }
+
+  .scroll-area::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* Safe area insets for mobile devices */
+@layer utilities {
+  .safe-area-inset-top {
+    padding-top: max(env(safe-area-inset-top), 1rem);
+  }
+
+  .safe-area-inset-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+
+  .safe-area-inset-left {
+    padding-left: max(env(safe-area-inset-left), 1rem);
+  }
+
+  .safe-area-inset-right {
+    padding-right: max(env(safe-area-inset-right), 1rem);
+  }
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bounceSubtle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes swipeIndicator {
+  0% { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}

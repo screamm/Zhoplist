@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/app-icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Zhoplist - Modern Shopping List App</title>
+    <meta name="description" content="En modern shopping list-app med glassmorphism design och mobile-first UX" />
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#6366f1" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Zhoplist" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/app-icon.svg" />
+    
+    <!-- Splash Screen for iOS -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="apple-touch-startup-image" href="/splash-screen.png" />
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileColor" content="#0f172a" />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Zhoplist - Modern Shopping List App" />
+    <meta property="og:description" content="En modern shopping list-app med glassmorphism design och mobile-first UX" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og-image.png" />
+    
+    <!-- Prevent zoom on input focus -->
+    <style>
+      @media screen and (max-width: 768px) {
+        input, textarea, select {
+          font-size: 16px !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
