@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTodo } from '../context/TodoContext';
 import type { Todo } from '../types';
+import { AllIcon, PendingIcon, DoneIcon, CheckIcon, PartyIcon, NoteIcon } from './icons/Icons';
 
 // Offline storage functions
 const saveToStorage = (todos: Todo[]) => {
   localStorage.setItem('todos', JSON.stringify(todos));
-};
-
-const loadFromStorage = (): Todo[] => {
-  const stored = localStorage.getItem('todos');
-  return stored ? JSON.parse(stored) : [];
 };
 
 export const SimpleApp: React.FC = () => {
@@ -130,7 +126,7 @@ export const SimpleApp: React.FC = () => {
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text'
         }}>
-          Shopping List
+          Zhoplist
         </h1>
         
         {state.todos.length > 0 && (
@@ -183,14 +179,16 @@ export const SimpleApp: React.FC = () => {
                   color: '#1a365d'
                 }}
                 onFocus={(e) => {
-                  e.target.style.backgroundColor = '#ffffff';
-                  e.target.style.boxShadow = '0 4px 20px rgba(0,180,219,0.15)';
-                  e.target.style.transform = 'translateY(-1px)';
+                  const target = e.target as HTMLInputElement;
+                  target.style.backgroundColor = '#ffffff';
+                  target.style.boxShadow = '0 4px 20px rgba(0,180,219,0.15)';
+                  target.style.transform = 'translateY(-1px)';
                 }}
                 onBlur={(e) => {
-                  e.target.style.backgroundColor = '#f0f8ff';
-                  e.target.style.boxShadow = '0 2px 8px rgba(0,180,219,0.08)';
-                  e.target.style.transform = 'translateY(0)';
+                  const target = e.target as HTMLInputElement;
+                  target.style.backgroundColor = '#f0f8ff';
+                  target.style.boxShadow = '0 2px 8px rgba(0,180,219,0.08)';
+                  target.style.transform = 'translateY(0)';
                 }}
               />
               <button
@@ -213,13 +211,15 @@ export const SimpleApp: React.FC = () => {
                 }}
                 onMouseEnter={(e) => {
                   if (newTodoTitle.trim()) {
-                    e.target.style.transform = 'translateY(-2px)';
-                    e.target.style.boxShadow = '0 8px 25px rgba(0,212,170,0.4)';
+                    const target = e.target as HTMLButtonElement;
+                    target.style.transform = 'translateY(-2px)';
+                    target.style.boxShadow = '0 8px 25px rgba(0,212,170,0.4)';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = newTodoTitle.trim() ? '0 4px 15px rgba(0,212,170,0.3)' : 'none';
+                  const target = e.target as HTMLButtonElement;
+                  target.style.transform = 'translateY(0)';
+                  target.style.boxShadow = newTodoTitle.trim() ? '0 4px 15px rgba(0,212,170,0.3)' : 'none';
                 }}
               >
                 Add
@@ -258,14 +258,16 @@ export const SimpleApp: React.FC = () => {
                 }}
                 onMouseEnter={(e) => {
                   if (activeTab !== tab) {
-                    e.target.style.backgroundColor = '#f8fdff';
-                    e.target.style.color = '#00b4db';
+                    const target = e.target as HTMLButtonElement;
+                    target.style.backgroundColor = '#f8fdff';
+                    target.style.color = '#00b4db';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (activeTab !== tab) {
-                    e.target.style.backgroundColor = 'transparent';
-                    e.target.style.color = '#64748b';
+                    const target = e.target as HTMLButtonElement;
+                    target.style.backgroundColor = 'transparent';
+                    target.style.color = '#64748b';
                   }
                 }}
               >
@@ -297,7 +299,12 @@ export const SimpleApp: React.FC = () => {
                 marginBottom: window.innerWidth <= 768 ? '12px' : '16px',
                 opacity: 0.6
               }}>
-                {activeTab === 'completed' ? '🎉' : activeTab === 'pending' ? '🛒' : '📝'}
+                {activeTab === 'completed' ? 
+                  <PartyIcon size={window.innerWidth <= 768 ? 48 : 64} color="#94a3b8" /> : 
+                 activeTab === 'pending' ? 
+                  <PendingIcon size={window.innerWidth <= 768 ? 48 : 64} color="#94a3b8" /> :
+                  <NoteIcon size={window.innerWidth <= 768 ? 48 : 64} color="#94a3b8" />
+                }
               </div>
               <div style={{ fontWeight: '500' }}>
                 {activeTab === 'completed' ? 'No completed items yet' : 
@@ -319,8 +326,8 @@ export const SimpleApp: React.FC = () => {
                     borderBottom: index < filteredTodos().length - 1 ? '1px solid #f1f8fc' : 'none',
                     transition: 'all 0.3s ease'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fdff'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  onMouseEnter={(e) => (e.currentTarget as HTMLDivElement).style.backgroundColor = '#f8fdff'}
+                  onMouseLeave={(e) => (e.currentTarget as HTMLDivElement).style.backgroundColor = 'transparent'}
                 >
                   {/* Modern Checkbox */}
                   <button
@@ -345,27 +352,26 @@ export const SimpleApp: React.FC = () => {
                     }}
                     onMouseEnter={(e) => {
                       if (!todo.completed) {
-                        e.target.style.background = 'linear-gradient(135deg, #e6fff9 0%, #e6f7ff 100%)';
-                        e.target.style.transform = 'scale(1.1)';
-                        e.target.style.boxShadow = '0 4px 15px rgba(0,180,219,0.2)';
+                        const target = e.target as HTMLButtonElement;
+                        target.style.background = 'linear-gradient(135deg, #e6fff9 0%, #e6f7ff 100%)';
+                        target.style.transform = 'scale(1.1)';
+                        target.style.boxShadow = '0 4px 15px rgba(0,180,219,0.2)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!todo.completed) {
-                        e.target.style.background = '#f0f8ff';
-                        e.target.style.transform = 'scale(1)';
-                        e.target.style.boxShadow = '0 2px 8px rgba(0,180,219,0.1)';
+                        const target = e.target as HTMLButtonElement;
+                        target.style.background = '#f0f8ff';
+                        target.style.transform = 'scale(1)';
+                        target.style.boxShadow = '0 2px 8px rgba(0,180,219,0.1)';
                       }
                     }}
                   >
                     {todo.completed && (
-                      <span style={{ 
-                        color: 'white', 
-                        fontSize: window.innerWidth <= 768 ? '16px' : '18px', // Smaller checkmark on mobile
-                        fontWeight: 'bold'
-                      }}>
-                        ✓
-                      </span>
+                      <CheckIcon 
+                        size={window.innerWidth <= 768 ? 16 : 18} 
+                        color="white" 
+                      />
                     )}
                   </button>
 
@@ -403,14 +409,16 @@ export const SimpleApp: React.FC = () => {
                       transition: 'all 0.3s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.target.style.opacity = '1';
-                      e.target.style.backgroundColor = '#fef2f2';
-                      e.target.style.transform = 'scale(1.15)';
+                      const target = e.target as HTMLButtonElement;
+                      target.style.opacity = '1';
+                      target.style.backgroundColor = '#fef2f2';
+                      target.style.transform = 'scale(1.15)';
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.opacity = '0.5';
-                      e.target.style.backgroundColor = 'transparent';
-                      e.target.style.transform = 'scale(1)';
+                      const target = e.target as HTMLButtonElement;
+                      target.style.opacity = '0.5';
+                      target.style.backgroundColor = 'transparent';
+                      target.style.transform = 'scale(1)';
                     }}
                   >
                     ×
@@ -452,18 +460,22 @@ export const SimpleApp: React.FC = () => {
           }}
           onMouseEnter={(e) => {
             if (activeTab !== 'all') {
-              e.target.style.backgroundColor = '#f8fdff';
-              e.target.style.color = '#00b4db';
+              const target = e.target as HTMLButtonElement;
+              target.style.backgroundColor = '#f8fdff';
+              target.style.color = '#00b4db';
             }
           }}
           onMouseLeave={(e) => {
             if (activeTab !== 'all') {
-              e.target.style.backgroundColor = 'transparent';
-              e.target.style.color = '#94a3b8';
+              const target = e.target as HTMLButtonElement;
+              target.style.backgroundColor = 'transparent';
+              target.style.color = '#94a3b8';
             }
           }}
         >
-          <div style={{ fontSize: window.innerWidth <= 768 ? '20px' : '24px', marginBottom: '4px' }}>📋</div>
+          <div style={{ marginBottom: '4px' }}>
+            <AllIcon size={window.innerWidth <= 768 ? 20 : 24} color="currentColor" />
+          </div>
           All
         </button>
         
@@ -485,18 +497,22 @@ export const SimpleApp: React.FC = () => {
           }}
           onMouseEnter={(e) => {
             if (activeTab !== 'pending') {
-              e.target.style.backgroundColor = '#f8fdff';
-              e.target.style.color = '#00b4db';
+              const target = e.target as HTMLButtonElement;
+              target.style.backgroundColor = '#f8fdff';
+              target.style.color = '#00b4db';
             }
           }}
           onMouseLeave={(e) => {
             if (activeTab !== 'pending') {
-              e.target.style.backgroundColor = 'transparent';
-              e.target.style.color = '#94a3b8';
+              const target = e.target as HTMLButtonElement;
+              target.style.backgroundColor = 'transparent';
+              target.style.color = '#94a3b8';
             }
           }}
         >
-          <div style={{ fontSize: window.innerWidth <= 768 ? '20px' : '24px', marginBottom: '4px' }}>🛒</div>
+          <div style={{ marginBottom: '4px' }}>
+            <PendingIcon size={window.innerWidth <= 768 ? 20 : 24} color="currentColor" />
+          </div>
           Pending
         </button>
         
@@ -518,18 +534,22 @@ export const SimpleApp: React.FC = () => {
           }}
           onMouseEnter={(e) => {
             if (activeTab !== 'completed') {
-              e.target.style.backgroundColor = '#f8fdff';
-              e.target.style.color = '#00b4db';
+              const target = e.target as HTMLButtonElement;
+              target.style.backgroundColor = '#f8fdff';
+              target.style.color = '#00b4db';
             }
           }}
           onMouseLeave={(e) => {
             if (activeTab !== 'completed') {
-              e.target.style.backgroundColor = 'transparent';
-              e.target.style.color = '#94a3b8';
+              const target = e.target as HTMLButtonElement;
+              target.style.backgroundColor = 'transparent';
+              target.style.color = '#94a3b8';
             }
           }}
         >
-          <div style={{ fontSize: window.innerWidth <= 768 ? '20px' : '24px', marginBottom: '4px' }}>✅</div>
+          <div style={{ marginBottom: '4px' }}>
+            <DoneIcon size={window.innerWidth <= 768 ? 20 : 24} color="currentColor" />
+          </div>
           Done
         </button>
       </div>

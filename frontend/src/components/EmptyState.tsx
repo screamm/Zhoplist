@@ -33,7 +33,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ filter, searchQuery }) =
       default:
         return {
           icon: WelcomeIcon,
-          title: 'Välkommen till din shopping list!',
+          title: 'Välkommen till Zhoplist!',
           description: 'Tryck på + för att lägga till din första uppgift',
         };
     }
