@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useTodo } from '../context/TodoContext.js';
 import { SHOPPING_CATEGORIES, type Category } from '../types/categories.js';
-import { Plus, Check, Sparkles } from 'lucide-react';
+import { Plus, Check, Menu, Sparkles } from 'lucide-react';
 import type { Todo } from '../types/index.js';
 import { AddItemModal } from './AddItemModal.js';
 import { generateShoppingMockData } from '../utils/shoppingMockData.js';
+import { getCategoryIcon } from './CategoryIcons.js';
 
 interface CategoryRowProps {
   category: Category;
@@ -23,38 +24,40 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
   onAddItem,
   onToggleItem
 }) => {
-  const [isHovered, setIsHovered] = React.useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   
   return (
-    <div style={{ marginBottom: '8px' }}>
+    <div style={{ marginBottom: '2px' }}>
       {/* Category Header */}
       <div 
         onClick={onCategoryClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         style={{
           display: 'flex',
           alignItems: 'center',
-          padding: '16px',
+          padding: '12px 16px',
           cursor: 'pointer',
-          backgroundColor: isHovered ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
-          borderRadius: '12px',
-          transition: 'background-color 0.3s'
+          position: 'relative',
         }}
       >
-        {/* Color Bar */}
-        <div 
-          style={{ 
-            width: '3px',
-            height: '48px',
-            borderRadius: '2px',
-            marginRight: '16px',
-            flexShrink: 0,
-            backgroundColor: category.color
-          }}
-        />
+        {/* Rounded Color Bar */}
+        {!isExpanded && (
+          <div 
+            style={{ 
+              position: 'absolute',
+              left: '16px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: '5px',
+              height: '52px',
+              borderRadius: '25px',
+              backgroundColor: category.color,
+              transition: 'all 0.3s ease',
+              zIndex: 2
+            }}
+          />
+        )}
         
-        {/* Icon */}
+        {/* Icon with gradient background */}
         <div 
           style={{
             width: '48px',
@@ -63,13 +66,14 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '24px',
+            marginLeft: '24px',
             marginRight: '16px',
-            flexShrink: 0,
-            backgroundColor: category.color + '30'
+            background: `linear-gradient(135deg, ${category.color}, ${category.color}dd)`,
+            boxShadow: `0 4px 12px ${category.color}40`,
+            flexShrink: 0
           }}
         >
-          {category.icon}
+          {getCategoryIcon(category.id, 'white')}
         </div>
         
         {/* Category Name */}
@@ -77,8 +81,9 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
           <h3 style={{ 
             color: 'white',
             fontWeight: '500',
-            fontSize: '18px',
-            margin: 0
+            fontSize: '17px',
+            margin: 0,
+            letterSpacing: '0.2px'
           }}>{category.name}</h3>
         </div>
         
@@ -89,69 +94,74 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
             onAddItem(category.id);
           }}
           style={{
-            width: '32px',
-            height: '32px',
+            width: '28px',
+            height: '28px',
             borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
             border: 'none',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            transition: 'background-color 0.3s',
+            transition: 'all 0.2s',
             flexShrink: 0
           }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+            e.currentTarget.style.transform = 'scale(1.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
         >
-          <Plus style={{ width: '20px', height: '20px', color: 'rgba(255, 255, 255, 0.7)' }} />
+          <Plus style={{ width: '18px', height: '18px', color: 'rgba(255, 255, 255, 0.8)' }} />
         </button>
       </div>
 
       {/* Expanded Items */}
-      {isExpanded && items.length > 0 && (
-        <div style={{ paddingLeft: '67px', paddingBottom: '16px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {items.map(item => (
+      {isExpanded && (
+        <div style={{ position: 'relative' }}>
+          {/* Continuous Color Bar */}
+          <div 
+            style={{ 
+              position: 'absolute',
+              left: '16px',
+              top: '-48px',
+              width: '5px',
+              height: `calc(100% + 48px)`,
+              backgroundColor: category.color,
+              borderRadius: '25px',
+              zIndex: 1
+            }}
+          />
+          
+          <div style={{ paddingLeft: '88px', paddingRight: '16px', paddingBottom: '12px' }}>
+            {items.map((item, index) => (
               <div 
                 key={item.id}
+                onMouseEnter={() => setHoveredItem(item.id)}
+                onMouseLeave={() => setHoveredItem(null)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  transition: 'background-color 0.3s'
+                  padding: '10px 0',
+                  opacity: item.completed ? 0.5 : 1,
+                  transition: 'opacity 0.2s'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleItem(item.id);
-                    }}
-                    style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      border: item.completed ? '2px solid #22C55E' : '2px solid rgba(255, 255, 255, 0.4)',
-                      backgroundColor: item.completed ? '#22C55E' : 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s'
-                    }}
-                  >
-                    {item.completed && <Check style={{ width: '16px', height: '16px', color: 'white' }} />}
-                  </button>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '12px',
+                  flex: 1 
+                }}>
                   <span style={{
-                    color: item.completed ? 'rgba(255, 255, 255, 0.4)' : 'white',
+                    color: item.completed ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.85)',
                     textDecoration: item.completed ? 'line-through' : 'none',
-                    fontSize: '16px'
+                    fontSize: '16px',
+                    fontWeight: '400'
                   }}>
                     {item.title}
                   </span>
@@ -167,18 +177,20 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
                     width: '24px',
                     height: '24px',
                     borderRadius: '50%',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    backgroundColor: hoveredItem === item.id ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
                     border: 'none',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    transition: 'background-color 0.3s'
+                    transition: 'all 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
                 >
-                  <Plus style={{ width: '16px', height: '16px', color: 'rgba(255, 255, 255, 0.5)' }} />
+                  <Plus style={{ 
+                    width: '16px', 
+                    height: '16px', 
+                    color: 'rgba(255, 255, 255, 0.5)' 
+                  }} />
                 </button>
               </div>
             ))}
@@ -189,9 +201,9 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
   );
 };
 
-export const ShoppingCategoryView: React.FC = () => {
+export const ModernShoppingList: React.FC = () => {
   const { filteredTodos, toggleTodo, createTodo } = useTodo();
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['dairy'])); // Default dairy expanded like in image
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoadingMockData, setIsLoadingMockData] = useState(false);
@@ -201,6 +213,8 @@ export const ShoppingCategoryView: React.FC = () => {
     if (newExpanded.has(categoryId)) {
       newExpanded.delete(categoryId);
     } else {
+      // Close all others and open this one
+      newExpanded.clear();
       newExpanded.add(categoryId);
     }
     setExpandedCategories(newExpanded);
@@ -234,45 +248,64 @@ export const ShoppingCategoryView: React.FC = () => {
   return (
     <div style={{ 
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      background: 'linear-gradient(180deg, #1a0033 0%, #2d1b69 100%)',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif'
     }}>
       {/* Header */}
-      <div style={{ padding: '24px 16px' }}>
+      <div style={{ 
+        padding: '0 16px',
+        paddingTop: '48px',
+        paddingBottom: '24px',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ width: '24px', height: '24px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-              <div style={{ width: '16px', height: '2px', backgroundColor: 'white' }}></div>
-              <div style={{ width: '24px', height: '2px', backgroundColor: 'white' }}></div>
-              <div style={{ width: '16px', height: '2px', backgroundColor: 'white' }}></div>
-            </div>
-          </div>
-          <h1 style={{ color: 'white', fontSize: '18px', fontWeight: '500', letterSpacing: '0.5px' }}>SHOPPING LIST</h1>
-          {filteredTodos.length === 0 && (
+          <button
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px'
+            }}
+          >
+            <div style={{ width: '20px', height: '2px', backgroundColor: 'white' }}></div>
+            <div style={{ width: '20px', height: '2px', backgroundColor: 'white' }}></div>
+            <div style={{ width: '14px', height: '2px', backgroundColor: 'white' }}></div>
+          </button>
+          
+          <h1 style={{ 
+            color: 'white', 
+            fontSize: '17px', 
+            fontWeight: '600', 
+            letterSpacing: '0.5px',
+            textTransform: 'uppercase',
+            margin: 0
+          }}>Shopping List</h1>
+          
+          {filteredTodos.length === 0 ? (
             <button
               onClick={loadMockData}
               disabled={isLoadingMockData}
               style={{
-                padding: '8px',
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                color: 'white',
-                borderRadius: '50%',
+                background: 'none',
                 border: 'none',
-                cursor: 'pointer',
-                transition: 'background-color 0.3s'
+                padding: '8px',
+                cursor: isLoadingMockData ? 'not-allowed' : 'pointer',
+                opacity: isLoadingMockData ? 0.5 : 1
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
             >
-              <Sparkles style={{ width: '16px', height: '16px' }} />
+              <Sparkles style={{ width: '20px', height: '20px', color: 'white' }} />
             </button>
+          ) : (
+            <div style={{ width: '36px' }}></div>
           )}
-          {filteredTodos.length > 0 && <div style={{ width: '24px' }}></div>}
         </div>
       </div>
 
       {/* Categories List */}
-      <div style={{ padding: '0 16px' }}>
+      <div style={{ padding: '20px 0' }}>
         {SHOPPING_CATEGORIES.map(category => {
           const items = getItemsByCategory(category.id);
           

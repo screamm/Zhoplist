@@ -21,8 +21,8 @@ export default {
         card: '#2C2C2E',         // Card Gray
         elevated: '#3A3A3C',     // Elevated surface
         
-        // Text system
-        text: '#FFFFFF',         // Primary text
+        // Text system - don't use 'text' as color name since it conflicts with Tailwind
+        'foreground': '#FFFFFF',         // Primary text
         'text-secondary': '#8E8E93', // Secondary text
         muted: '#636366',        // Muted text
         

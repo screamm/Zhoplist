@@ -57,6 +57,54 @@ export const SHOPPING_CATEGORIES: Category[] = [
     color: '#EC4899',
     bgColor: 'bg-pink-500',
     order: 6
+  },
+  {
+    id: 'pantry',
+    name: 'Pantry',
+    icon: '🥫',
+    color: '#8B5CF6',
+    bgColor: 'bg-violet-500',
+    order: 7
+  },
+  {
+    id: 'frozen',
+    name: 'Frozen',
+    icon: '🧊',
+    color: '#06B6D4',
+    bgColor: 'bg-cyan-500',
+    order: 8
+  },
+  {
+    id: 'drinks',
+    name: 'Drinks',
+    icon: '🥤',
+    color: '#10B981',
+    bgColor: 'bg-emerald-500',
+    order: 9
+  },
+  {
+    id: 'snacks',
+    name: 'Snacks',
+    icon: '🍿',
+    color: '#F59E0B',
+    bgColor: 'bg-amber-500',
+    order: 10
+  },
+  {
+    id: 'household',
+    name: 'Household',
+    icon: '🧽',
+    color: '#6366F1',
+    bgColor: 'bg-indigo-500',
+    order: 11
+  },
+  {
+    id: 'personal',
+    name: 'Personal Care',
+    icon: '🧴',
+    color: '#EF4444',
+    bgColor: 'bg-red-500',
+    order: 12
   }
 ];
 

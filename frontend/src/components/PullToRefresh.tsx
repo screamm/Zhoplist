@@ -32,7 +32,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({ onRefresh, childre
           {isRefreshing ? (
             <>
               <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-              <span className="text-sm text-text">Uppdaterar...</span>
+              <span className="text-sm text-white">Uppdaterar...</span>
             </>
           ) : (
             <>
@@ -45,7 +45,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({ onRefresh, childre
               >
                 <div className="w-1 h-1 bg-primary rounded-full"></div>
               </div>
-              <span className="text-sm text-text">
+              <span className="text-sm text-white">
                 {pullProgress >= 1 ? 'Släpp för att uppdatera' : 'Dra ner för att uppdatera'}
               </span>
             </>

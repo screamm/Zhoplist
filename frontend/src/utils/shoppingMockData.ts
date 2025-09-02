@@ -195,10 +195,10 @@ export const generateShoppingMockData = (): Todo[] => {
       userSession: sessionId
     },
     
-    // Breads and pastries
+    // Breads and pastries (matching image 3)
     {
       id: uuidv4(),
-      title: 'Sourdough bread',
+      title: 'Grain bread',
       description: '',
       completed: false,
       priority: 0,
@@ -210,7 +210,7 @@ export const generateShoppingMockData = (): Todo[] => {
     },
     {
       id: uuidv4(),
-      title: 'Croissant',
+      title: 'Rolls',
       description: '',
       completed: false,
       priority: 0,
@@ -222,7 +222,43 @@ export const generateShoppingMockData = (): Todo[] => {
     },
     {
       id: uuidv4(),
-      title: 'Bagels',
+      title: 'Cookies',
+      description: '',
+      completed: false,
+      priority: 0,
+      category: 'bread',
+      createdAt: now,
+      updatedAt: now,
+      tags: [],
+      userSession: sessionId
+    },
+    {
+      id: uuidv4(),
+      title: 'Chocolate cake',
+      description: '',
+      completed: false,
+      priority: 0,
+      category: 'bread',
+      createdAt: now,
+      updatedAt: now,
+      tags: [],
+      userSession: sessionId
+    },
+    {
+      id: uuidv4(),
+      title: 'Fruit Cake',
+      description: '',
+      completed: false,
+      priority: 0,
+      category: 'bread',
+      createdAt: now,
+      updatedAt: now,
+      tags: [],
+      userSession: sessionId
+    },
+    {
+      id: uuidv4(),
+      title: 'Baguette',
       description: '',
       completed: false,
       priority: 0,

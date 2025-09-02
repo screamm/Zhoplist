@@ -85,10 +85,10 @@ export const EditTodoModal: React.FC<EditTodoModalProps> = ({ todo }) => {
       <div className="bg-surface w-full max-w-md rounded-xl border border-white/10 animate-fade-in max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
-          <h2 className="text-xl font-bold text-text">Redigera todo</h2>
+          <h2 className="text-xl font-bold text-white">Redigera todo</h2>
           <button
             onClick={stopEditingTodo}
-            className="text-muted hover:text-text transition-colors p-1 hover:bg-white/10 rounded"
+            className="text-muted hover:text-white transition-colors p-1 hover:bg-white/10 rounded"
           >
             ✕
           </button>
@@ -98,7 +98,7 @@ export const EditTodoModal: React.FC<EditTodoModalProps> = ({ todo }) => {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-text mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Titel *
             </label>
             <input
@@ -114,7 +114,7 @@ export const EditTodoModal: React.FC<EditTodoModalProps> = ({ todo }) => {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-text mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Beskrivning
             </label>
             <textarea
@@ -130,7 +130,7 @@ export const EditTodoModal: React.FC<EditTodoModalProps> = ({ todo }) => {
           <div className="grid grid-cols-2 gap-4">
             {/* Priority */}
             <div>
-              <label className="block text-sm font-medium text-text mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 Prioritet
               </label>
               <select
@@ -148,7 +148,7 @@ export const EditTodoModal: React.FC<EditTodoModalProps> = ({ todo }) => {
 
             {/* Category */}
             <div>
-              <label className="block text-sm font-medium text-text mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 Kategori
               </label>
               <select
@@ -168,7 +168,7 @@ export const EditTodoModal: React.FC<EditTodoModalProps> = ({ todo }) => {
 
           {/* Due Date */}
           <div>
-            <label className="block text-sm font-medium text-text mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Förfallodatum
             </label>
             <input
@@ -182,7 +182,7 @@ export const EditTodoModal: React.FC<EditTodoModalProps> = ({ todo }) => {
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium text-text mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Taggar
             </label>
             <input
