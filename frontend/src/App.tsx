@@ -1,7 +1,7 @@
 // React import not needed in React 19
 import { TodoProvider } from './context/TodoContext';
 import './App.css';
-import { ResponsiveCategoryView } from './components/ResponsiveCategoryView';
+import { ShoppingCategoryView } from './components/ShoppingCategoryView';
 import { EditTodoModal } from './components/EditTodoModal';
 import { useTodo } from './context/TodoContext';
 
@@ -10,7 +10,7 @@ function AppContent() {
   
   return (
     <div className="min-h-screen">
-      <ResponsiveCategoryView />
+      <ShoppingCategoryView />
       {state.editingTodo && <EditTodoModal todo={state.editingTodo} />}
     </div>
   );

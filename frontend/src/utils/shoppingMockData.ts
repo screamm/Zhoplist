@@ -6,14 +6,14 @@ export const generateShoppingMockData = (): Todo[] => {
   const sessionId = 'mock-session-' + Date.now();
   
   return [
-    // Frukt & Grönt
+    // Fruits
     {
       id: uuidv4(),
-      title: 'Äpplen',
-      description: '6 st Granny Smith',
+      title: 'Apples',
+      description: '',
       completed: false,
       priority: 0,
-      category: 'produce',
+      category: 'fruits',
       createdAt: now,
       updatedAt: now,
       tags: [],
@@ -21,60 +21,25 @@ export const generateShoppingMockData = (): Todo[] => {
     },
     {
       id: uuidv4(),
-      title: 'Bananer',
-      description: '1 klase',
-      completed: true,
-      priority: 0,
-      category: 'produce',
-      createdAt: now,
-      updatedAt: now,
-      tags: [],
-      userSession: sessionId
-    },
-    {
-      id: uuidv4(),
-      title: 'Sallad',
-      description: 'Isbergssallad',
-      completed: false,
-      priority: 1,
-      category: 'produce',
-      createdAt: now,
-      updatedAt: now,
-      tags: [],
-      userSession: sessionId
-    },
-    {
-      id: uuidv4(),
-      title: 'Tomater',
-      description: '500g körsbärstomater',
+      title: 'Bananas',
+      description: '',
       completed: false,
       priority: 0,
-      category: 'produce',
-      createdAt: now,
-      updatedAt: now,
-      tags: [],
-      userSession: sessionId
-    },
-    {
-      id: uuidv4(),
-      title: 'Gurka',
-      completed: false,
-      priority: 0,
-      category: 'produce',
+      category: 'fruits',
       createdAt: now,
       updatedAt: now,
       tags: [],
       userSession: sessionId
     },
     
-    // Mejeri
+    // Vegetables  
     {
       id: uuidv4(),
-      title: 'Mjölk',
-      description: '2 liter, 3%',
+      title: 'Lettuce',
+      description: '',
       completed: false,
-      priority: 2,
-      category: 'dairy',
+      priority: 0,
+      category: 'vegetables',
       createdAt: now,
       updatedAt: now,
       tags: [],
@@ -82,8 +47,33 @@ export const generateShoppingMockData = (): Todo[] => {
     },
     {
       id: uuidv4(),
-      title: 'Ost',
-      description: 'Grevé 28%',
+      title: 'Tomatoes',
+      description: '',
+      completed: false,
+      priority: 0,
+      category: 'vegetables',
+      createdAt: now,
+      updatedAt: now,
+      tags: [],
+      userSession: sessionId
+    },
+    {
+      id: uuidv4(),
+      title: 'Cucumber',
+      completed: false,
+      priority: 0,
+      category: 'vegetables',
+      createdAt: now,
+      updatedAt: now,
+      tags: [],
+      userSession: sessionId
+    },
+    
+    // Dairy Products (exactly like in the image)
+    {
+      id: uuidv4(),
+      title: 'Butter',
+      description: '',
       completed: false,
       priority: 0,
       category: 'dairy',
@@ -94,9 +84,9 @@ export const generateShoppingMockData = (): Todo[] => {
     },
     {
       id: uuidv4(),
-      title: 'Yoghurt',
-      description: 'Vanilj, 1 liter',
-      completed: true,
+      title: 'Sour cream',
+      description: '',
+      completed: false,
       priority: 0,
       category: 'dairy',
       createdAt: now,
@@ -106,10 +96,46 @@ export const generateShoppingMockData = (): Todo[] => {
     },
     {
       id: uuidv4(),
-      title: 'Smör',
-      description: 'Normalsaltat',
+      title: 'Whipped cream',
+      description: '',
       completed: false,
-      priority: 1,
+      priority: 0,
+      category: 'dairy',
+      createdAt: now,
+      updatedAt: now,
+      tags: [],
+      userSession: sessionId
+    },
+    {
+      id: uuidv4(),
+      title: 'Yogurt',
+      description: '',
+      completed: false,
+      priority: 0,
+      category: 'dairy',
+      createdAt: now,
+      updatedAt: now,
+      tags: [],
+      userSession: sessionId
+    },
+    {
+      id: uuidv4(),
+      title: 'Cheese cream',
+      description: '',
+      completed: false,
+      priority: 0,
+      category: 'dairy',
+      createdAt: now,
+      updatedAt: now,
+      tags: [],
+      userSession: sessionId
+    },
+    {
+      id: uuidv4(),
+      title: 'Parmesan',
+      description: '',
+      completed: false,
+      priority: 0,
       category: 'dairy',
       createdAt: now,
       updatedAt: now,
@@ -117,13 +143,13 @@ export const generateShoppingMockData = (): Todo[] => {
       userSession: sessionId
     },
     
-    // Kött & Fisk
+    // Meat
     {
       id: uuidv4(),
-      title: 'Kycklingfilé',
-      description: '600g',
+      title: 'Chicken breast',
+      description: '',
       completed: false,
-      priority: 1,
+      priority: 0,
       category: 'meat',
       createdAt: now,
       updatedAt: now,
@@ -132,20 +158,8 @@ export const generateShoppingMockData = (): Todo[] => {
     },
     {
       id: uuidv4(),
-      title: 'Köttfärs',
-      description: '500g nötfärs',
-      completed: false,
-      priority: 0,
-      category: 'meat',
-      createdAt: now,
-      updatedAt: now,
-      tags: [],
-      userSession: sessionId
-    },
-    {
-      id: uuidv4(),
-      title: 'Lax',
-      description: '400g laxfilé',
+      title: 'Ground beef',
+      description: '',
       completed: false,
       priority: 0,
       category: 'meat',
@@ -155,13 +169,39 @@ export const generateShoppingMockData = (): Todo[] => {
       userSession: sessionId
     },
     
-    // Bröd & Bakverk
+    // Fish
     {
       id: uuidv4(),
-      title: 'Bröd',
-      description: 'Fullkornsbröd',
+      title: 'Salmon',
+      description: '',
       completed: false,
-      priority: 2,
+      priority: 0,
+      category: 'fish',
+      createdAt: now,
+      updatedAt: now,
+      tags: [],
+      userSession: sessionId
+    },
+    {
+      id: uuidv4(),
+      title: 'Tuna',
+      description: '',
+      completed: false,
+      priority: 0,
+      category: 'fish',
+      createdAt: now,
+      updatedAt: now,
+      tags: [],
+      userSession: sessionId
+    },
+    
+    // Breads and pastries
+    {
+      id: uuidv4(),
+      title: 'Sourdough bread',
+      description: '',
+      completed: false,
+      priority: 0,
       category: 'bread',
       createdAt: now,
       updatedAt: now,
@@ -170,8 +210,20 @@ export const generateShoppingMockData = (): Todo[] => {
     },
     {
       id: uuidv4(),
-      title: 'Frallor',
-      description: '6-pack',
+      title: 'Croissant',
+      description: '',
+      completed: false,
+      priority: 0,
+      category: 'bread',
+      createdAt: now,
+      updatedAt: now,
+      tags: [],
+      userSession: sessionId
+    },
+    {
+      id: uuidv4(),
+      title: 'Bagels',
+      description: '',
       completed: false,
       priority: 0,
       category: 'bread',
