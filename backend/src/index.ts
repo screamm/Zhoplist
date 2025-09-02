@@ -34,13 +34,19 @@ interface Env {
 // CORS headers för frontend
 const corsHeaders = {
 	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-	'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+	'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+	'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Session-ID',
 	'Access-Control-Max-Age': '86400',
 };
 
-function jsonResponse(data: any, status = 200, headers = {}) {
-	return new Response(JSON.stringify(data), {
+function jsonResponse(data: any, status = 200, headers = {}, message?: string) {
+	const response = {
+		data,
+		success: status >= 200 && status < 300,
+		...(message && { message })
+	};
+	
+	return new Response(JSON.stringify(response), {
 		status,
 		headers: {
 			'Content-Type': 'application/json',
@@ -51,7 +57,20 @@ function jsonResponse(data: any, status = 200, headers = {}) {
 }
 
 function errorResponse(message: string, status = 400) {
-	return jsonResponse({ error: message }, status);
+	const response = {
+		data: null,
+		success: false,
+		message,
+		error: message
+	};
+	
+	return new Response(JSON.stringify(response), {
+		status,
+		headers: {
+			'Content-Type': 'application/json',
+			...corsHeaders,
+		},
+	});
 }
 
 // Handle CORS preflight requests
@@ -159,7 +178,7 @@ async function createTodo(request: Request, db: D1Database): Promise<Response> {
 			userSession: todo.user_session,
 		};
 
-		return jsonResponse(responseData, 201);
+		return jsonResponse(responseData, 201, {}, 'Todo created successfully');
 	} catch (error) {
 		console.error('Error creating todo:', error);
 		return errorResponse('Failed to create todo', 500);
@@ -201,7 +220,7 @@ async function updateTodo(request: Request, db: D1Database, id: string): Promise
 			return errorResponse('Todo not found or access denied', 404);
 		}
 
-		return jsonResponse({ message: 'Todo updated successfully' });
+		return jsonResponse(null, 200, {}, 'Todo updated successfully');
 	} catch (error) {
 		console.error('Error updating todo:', error);
 		return errorResponse('Failed to update todo', 500);
@@ -221,7 +240,7 @@ async function deleteTodo(db: D1Database, request: Request, id: string): Promise
 			return errorResponse('Todo not found or access denied', 404);
 		}
 
-		return jsonResponse({ message: 'Todo deleted successfully' });
+		return jsonResponse(null, 200, {}, 'Todo deleted successfully');
 	} catch (error) {
 		console.error('Error deleting todo:', error);
 		return errorResponse('Failed to delete todo', 500);
@@ -237,10 +256,12 @@ async function deleteCompletedTodos(db: D1Database, request: Request): Promise<R
 
 		const result = await db.prepare('DELETE FROM todos WHERE completed = true AND user_session = ?').bind(sessionId).run();
 		
-		return jsonResponse({ 
-			message: 'Completed todos deleted successfully',
-			deletedCount: result.changes 
-		});
+		return jsonResponse(
+			{ deletedCount: result.changes }, 
+			200, 
+			{}, 
+			'Completed todos deleted successfully'
+		);
 	} catch (error) {
 		console.error('Error deleting completed todos:', error);
 		return errorResponse('Failed to delete completed todos', 500);
@@ -266,7 +287,7 @@ async function toggleTodo(db: D1Database, request: Request, id: string): Promise
 			return errorResponse('Todo not found or access denied', 404);
 		}
 
-		return jsonResponse({ message: 'Todo toggled successfully' });
+		return jsonResponse(null, 200, {}, 'Todo toggled successfully');
 	} catch (error) {
 		console.error('Error toggling todo:', error);
 		return errorResponse('Failed to toggle todo', 500);
@@ -337,7 +358,7 @@ export default {
 				status: 'healthy', 
 				environment: env.ENVIRONMENT,
 				timestamp: new Date().toISOString() 
-			});
+			}, 200, {}, 'API is healthy');
 		}
 
 		return errorResponse('Not found', 404);

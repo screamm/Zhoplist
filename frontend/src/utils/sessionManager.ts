@@ -221,4 +221,7 @@ class SessionManager {
 export const sessionManager = new SessionManager();
 
 // Export types och utilities
-export { SessionManager }; 
+export { SessionManager };
+
+// Default export för convenience
+export default SessionManager; 

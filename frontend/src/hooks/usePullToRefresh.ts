@@ -1,4 +1,4 @@
-import { useRef, useCallback, TouchEvent, useState } from 'react';
+import { useRef, useCallback, type TouchEvent, useState } from 'react';
 
 interface PullToRefreshOptions {
   onRefresh: () => Promise<void>;

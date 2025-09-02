@@ -1,4 +1,4 @@
-import type { Todo } from '../types';
+import type { Todo, TodoFormData } from '../types';
 
 export const mockTodos: Todo[] = [
   {
@@ -12,6 +12,7 @@ export const mockTodos: Todo[] = [
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
     dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(), // Tomorrow
     tags: ['inköp', 'mat', 'urgency'],
+    userSession: 'default-session',
   },
   {
     id: '2', 
@@ -23,6 +24,7 @@ export const mockTodos: Todo[] = [
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
     tags: ['hälsa', 'telefon'],
+    userSession: 'default-session',
   },
   {
     id: '3',
@@ -35,6 +37,7 @@ export const mockTodos: Todo[] = [
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
     dueDate: new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString(), // In 2 days
     tags: ['jobb', 'deadline', 'rapport'],
+    userSession: 'default-session',
   },
   {
     id: '4',
@@ -46,6 +49,7 @@ export const mockTodos: Todo[] = [
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(), // 3 days ago
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(), // 6 hours ago
     tags: ['present', 'familj'],
+    userSession: 'default-session',
   }
   // REMOVED todos 5, 6, 7, 8 to keep only 4 todos with different categories
 ];
@@ -56,7 +60,7 @@ export const createMockAPI = () => {
 
   return {
     getTodos: () => Promise.resolve([...todos]),
-    createTodo: (todoData: any) => {
+    createTodo: (todoData: TodoFormData) => {
       const newTodo: Todo = {
         id: Date.now().toString(),
         title: todoData.title,
@@ -68,11 +72,12 @@ export const createMockAPI = () => {
         updatedAt: new Date().toISOString(),
         dueDate: todoData.dueDate,
         tags: todoData.tags || [],
+        userSession: 'default-session',
       };
       todos.unshift(newTodo);
       return Promise.resolve(newTodo);
     },
-    updateTodo: (id: string, updates: any) => {
+    updateTodo: (id: string, updates: Partial<TodoFormData>) => {
       const index = todos.findIndex(t => t.id === id);
       if (index !== -1) {
         todos[index] = { ...todos[index], ...updates, updatedAt: new Date().toISOString() };

@@ -8,18 +8,12 @@ interface TodoItemProps {
   hideIcon?: boolean;
 }
 
-export const TodoItem: React.FC<TodoItemProps> = ({ todo, hideIcon = false }) => {
+export const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
   console.log('📝 TodoItem render with todo:', todo);
   
   const { toggleTodo, deleteTodo } = useTodo();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
-
-  // Safety check for todo
-  if (!todo || typeof todo !== 'object' || !todo.id || !todo.title) {
-    console.log('❌ TodoItem: Invalid todo, returning null');
-    return null;
-  }
 
   const handleDelete = () => {
     setIsDeleting(true);
@@ -36,25 +30,19 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, hideIcon = false }) =>
     }, 150);
   };
 
-  const { 
-    swipeHandlers, 
-    swipeDirection, 
-    swipeOffset,
-    isVisible 
-  } = useSwipe({
+  const swipeHandlers = useSwipe({
     onSwipeLeft: handleDelete,
     onSwipeRight: handleToggle,
-    threshold: 100,
-    resetDelay: 2000
+    minDistance: 100
   });
 
-  const transform = swipeDirection === 'left' 
-    ? `translateX(${Math.min(swipeOffset, -80)}px)` 
-    : swipeDirection === 'right' 
-    ? `translateX(${Math.max(swipeOffset, 80)}px)` 
-    : 'translateX(0px)';
+  // Safety check for todo
+  if (!todo || typeof todo !== 'object' || !todo.id || !todo.title) {
+    console.log('❌ TodoItem: Invalid todo, returning null');
+    return null;
+  }
 
-  if (!isVisible || isDeleting) {
+  if (isDeleting) {
     return null;
   }
 
@@ -71,39 +59,9 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, hideIcon = false }) =>
 
   return (
     <div className="relative w-full">
-      {/* Swipe action indicators */}
-      {(swipeDirection === 'left' || swipeDirection === 'right') && (
-        <div className="absolute inset-0 flex items-center justify-between px-4 rounded-xl overflow-hidden z-10">
-          {/* Delete action (left swipe) */}
-          {swipeDirection === 'left' && (
-            <div className="flex items-center space-x-2 text-red-500">
-              <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm">🗑️</span>
-              </div>
-              <span className="text-sm font-medium">Ta bort</span>
-            </div>
-          )}
-
-          {/* Complete action (right swipe) */}
-          {swipeDirection === 'right' && (
-            <div className="flex items-center space-x-2 text-green-500 ml-auto">
-              <span className="text-sm font-medium">
-                {todo.completed ? 'Ångra' : 'Klar'}
-              </span>
-              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm">
-                  {todo.completed ? '↶' : '✓'}
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Main todo content */}
       <div
         {...swipeHandlers}
-        style={{ transform }}
         className={`
           relative 
           transition-all 

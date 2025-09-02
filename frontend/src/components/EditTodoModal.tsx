@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { Todo, TodoFormData } from '../types/index.js';
 import { PRIORITY_LEVELS } from '../types/index.js';
 import { useTodo } from '../context/TodoContext';
+import { SHOPPING_CATEGORIES } from '../types/categories.js';
 
 interface EditTodoModalProps {
   todo: Todo;
@@ -45,7 +46,7 @@ export const EditTodoModal: React.FC<EditTodoModalProps> = ({ todo }) => {
     }
   };
 
-  const handleInputChange = (field: keyof TodoFormData, value: any) => {
+  const handleInputChange = (field: keyof TodoFormData, value: string | number | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -150,13 +151,18 @@ export const EditTodoModal: React.FC<EditTodoModalProps> = ({ todo }) => {
               <label className="block text-sm font-medium text-text mb-2">
                 Kategori
               </label>
-              <input
-                type="text"
-                value={formData.category}
+              <select
+                value={formData.category || ''}
                 onChange={(e) => handleInputChange('category', e.target.value)}
-                placeholder="t.ex. Jobb, Hem"
                 className="form-input"
-              />
+              >
+                <option value="">Välj kategori...</option>
+                {SHOPPING_CATEGORIES.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.icon} {category.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(npm run type-check:*)",
+      "WebFetch(domain:zhoplist-api.davidrydgren.workers.dev)",
+      "WebFetch(domain:2fc3c7d3.zhoplist-frontend.pages.dev)",
+      "Bash(npx wrangler d1 migrations apply:*)",
+      "Bash(rm:*)",
+      "Bash(npm install)",
+      "Bash(npm run deploy:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx wrangler:*)",
+      "Bash(npm install:*)",
+      "Bash(../backend/node_modules/.bin/wrangler pages deploy dist --project-name zhoplist-frontend)",
+      "WebFetch(domain:512cb6cc.zhoplist-frontend.pages.dev)",
+      "Bash(curl:*)"
+    ],
+    "deny": []
+  }
+}

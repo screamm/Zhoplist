@@ -1,10 +1,10 @@
 import React from 'react';
-import { useTodos } from '../context/TodoContext';
+import { useTodo } from '../context/TodoContext';
 import { TodoList } from './TodoList';
-import { AddTodoForm } from './AddTodoForm';
+import { AddTodoModal } from './AddTodoModal';
 
 export const TodoApp: React.FC = () => {
-  const { state, loadTodos } = useTodos();
+  const { state, loadTodos } = useTodo();
 
   console.log('🏠 TodoApp render:', {
     todos: state.todos,
@@ -28,9 +28,12 @@ export const TodoApp: React.FC = () => {
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-6 py-8">
-        {/* Add Todo Form */}
+        {/* Add Todo Modal */}
         <div className="mb-8">
-          <AddTodoForm />
+          <AddTodoModal 
+            isOpen={false}
+            onClose={() => {}}
+          />
         </div>
 
         {/* Loading State */}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTodo } from '../context/TodoContext';
 import type { Todo } from '../types';
 import { AllIcon, PendingIcon, DoneIcon, CheckIcon, PartyIcon, NoteIcon } from './icons/Icons';
+import { hapticFeedback } from '../utils/animations';
 
 // Offline storage functions
 const saveToStorage = (todos: Todo[]) => {
@@ -38,6 +39,8 @@ export const SimpleApp: React.FC = () => {
   const handleAddTodo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newTodoTitle.trim()) {
+      hapticFeedback.light(); // Lätt vibration för add
+      
       await createTodo({
         title: newTodoTitle,
         description: '',
@@ -49,10 +52,20 @@ export const SimpleApp: React.FC = () => {
   };
 
   const handleToggleTodo = async (id: string) => {
+    const todo = state.todos.find(t => t.id === id);
+    
+    // Haptic feedback för touch-känsla
+    if (todo?.completed) {
+      hapticFeedback.light(); // Lätt vibration för undo
+    } else {
+      hapticFeedback.success(); // Framgång vibration för completion
+    }
+    
     await toggleTodo(id);
   };
 
   const handleDeleteTodo = async (id: string) => {
+    hapticFeedback.error(); // Varning vibration för delete
     await deleteTodo(id);
   };
 
@@ -84,28 +97,33 @@ export const SimpleApp: React.FC = () => {
       top: 0,
       left: 0
     }}>
-      {/* Modern Header with Cyan-Green Gradient */}
+      {/* Modern 2025 Header with Enhanced Liquid Glass */}
       <div style={{
-        background: 'linear-gradient(135deg, #00b4db 0%, #0083b0 100%)',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #8B5CF6 100%)',
         color: 'white',
-        padding: '24px 20px',
+        padding: '28px 24px',
         position: 'relative',
-        flexShrink: 0
+        flexShrink: 0,
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 8px 32px rgba(102, 126, 234, 0.15)'
       }}>
-        {/* Online/Offline indicator */}
+        {/* Online/Offline indicator with 2025 glass effect */}
         <div style={{
           position: 'absolute',
-          top: '16px',
-          right: '20px',
+          top: '20px',
+          right: '24px',
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
+          gap: '8px',
           fontSize: '12px',
-          opacity: 0.9,
-          background: 'rgba(255,255,255,0.1)',
-          padding: '4px 8px',
-          borderRadius: '12px',
-          backdropFilter: 'blur(10px)'
+          fontWeight: '500',
+          background: 'rgba(255, 255, 255, 0.15)',
+          padding: '6px 12px',
+          borderRadius: '20px',
+          backdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)'
         }}>
           <div style={{
             width: '6px',
@@ -118,13 +136,15 @@ export const SimpleApp: React.FC = () => {
         
         <h1 style={{
           margin: 0,
-          fontSize: '32px',
-          fontWeight: '800',
-          letterSpacing: '-1px',
-          background: 'linear-gradient(45deg, #ffffff, #e6f7ff)',
+          fontSize: '36px',
+          fontWeight: '900',
+          letterSpacing: '-2px',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f0f9ff 50%, #e0f2fe 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text'
+          backgroundClip: 'text',
+          textShadow: '0 2px 20px rgba(255, 255, 255, 0.1)',
+          fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
         }}>
           Zhoplist
         </h1>
@@ -148,12 +168,14 @@ export const SimpleApp: React.FC = () => {
         flexDirection: 'column',
         overflow: 'hidden'
       }}>
-        {/* Add Item Section */}
+        {/* Add Item Section with Enhanced Glass */}
         <div style={{
-          padding: '24px 20px',
-          backgroundColor: 'white',
-          borderBottom: '1px solid #e8f4f8',
-          flexShrink: 0
+          padding: '28px 24px',
+          background: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(24px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+          flexShrink: 0,
+          boxShadow: '0 1px 20px rgba(0, 0, 0, 0.05)'
         }}>
           <form onSubmit={handleAddTodo}>
             <div style={{
@@ -168,58 +190,67 @@ export const SimpleApp: React.FC = () => {
                 placeholder="What do you need to buy?"
                 style={{
                   flex: 1,
-                  padding: '18px 24px',
-                  border: 'none',
-                  borderRadius: '20px',
-                  backgroundColor: '#f0f8ff',
+                  padding: '20px 28px',
+                  border: '1px solid rgba(102, 126, 234, 0.15)',
+                  borderRadius: '24px',
+                  background: 'rgba(248, 250, 252, 0.9)',
+                  backdropFilter: 'blur(12px)',
                   fontSize: '16px',
+                  fontWeight: '500',
                   outline: 'none',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 2px 8px rgba(0,180,219,0.08)',
-                  color: '#1a365d'
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: '0 4px 24px rgba(102, 126, 234, 0.08)',
+                  color: '#1e293b',
+                  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
                 }}
                 onFocus={(e) => {
                   const target = e.target as HTMLInputElement;
-                  target.style.backgroundColor = '#ffffff';
-                  target.style.boxShadow = '0 4px 20px rgba(0,180,219,0.15)';
-                  target.style.transform = 'translateY(-1px)';
+                  target.style.background = 'rgba(255, 255, 255, 0.95)';
+                  target.style.borderColor = 'rgba(139, 92, 246, 0.4)';
+                  target.style.boxShadow = '0 8px 40px rgba(139, 92, 246, 0.15), 0 0 0 3px rgba(139, 92, 246, 0.1)';
+                  target.style.transform = 'translateY(-2px) scale(1.01)';
                 }}
                 onBlur={(e) => {
                   const target = e.target as HTMLInputElement;
-                  target.style.backgroundColor = '#f0f8ff';
-                  target.style.boxShadow = '0 2px 8px rgba(0,180,219,0.08)';
-                  target.style.transform = 'translateY(0)';
+                  target.style.background = 'rgba(248, 250, 252, 0.9)';
+                  target.style.borderColor = 'rgba(102, 126, 234, 0.15)';
+                  target.style.boxShadow = '0 4px 24px rgba(102, 126, 234, 0.08)';
+                  target.style.transform = 'translateY(0) scale(1)';
                 }}
               />
               <button
                 type="submit"
                 disabled={!newTodoTitle.trim()}
                 style={{
-                  padding: '18px 28px',
+                  padding: '20px 32px',
                   background: newTodoTitle.trim() 
-                    ? 'linear-gradient(135deg, #00d4aa 0%, #00b4db 100%)' 
-                    : '#e2e8f0',
-                  color: newTodoTitle.trim() ? 'white' : '#a0aec0',
-                  border: 'none',
-                  borderRadius: '20px',
+                    ? 'linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #C084FC 100%)' 
+                    : 'rgba(226, 232, 240, 0.8)',
+                  color: newTodoTitle.trim() ? 'white' : '#94a3b8',
+                  border: newTodoTitle.trim() ? '1px solid rgba(139, 92, 246, 0.2)' : '1px solid rgba(226, 232, 240, 0.5)',
+                  borderRadius: '24px',
                   fontSize: '16px',
-                  fontWeight: '700',
+                  fontWeight: '600',
                   cursor: newTodoTitle.trim() ? 'pointer' : 'not-allowed',
-                  transition: 'all 0.3s ease',
-                  boxShadow: newTodoTitle.trim() ? '0 4px 15px rgba(0,212,170,0.3)' : 'none',
-                  minWidth: '80px'
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: newTodoTitle.trim() ? '0 8px 32px rgba(139, 92, 246, 0.25)' : 'none',
+                  minWidth: '100px',
+                  backdropFilter: 'blur(12px)',
+                  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
                 }}
                 onMouseEnter={(e) => {
                   if (newTodoTitle.trim()) {
                     const target = e.target as HTMLButtonElement;
-                    target.style.transform = 'translateY(-2px)';
-                    target.style.boxShadow = '0 8px 25px rgba(0,212,170,0.4)';
+                    target.style.transform = 'translateY(-3px) scale(1.02)';
+                    target.style.boxShadow = '0 12px 48px rgba(139, 92, 246, 0.35)';
+                    target.style.background = 'linear-gradient(135deg, #7C3AED 0%, #8B5CF6 50%, #A855F7 100%)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   const target = e.target as HTMLButtonElement;
-                  target.style.transform = 'translateY(0)';
-                  target.style.boxShadow = newTodoTitle.trim() ? '0 4px 15px rgba(0,212,170,0.3)' : 'none';
+                  target.style.transform = 'translateY(0) scale(1)';
+                  target.style.boxShadow = newTodoTitle.trim() ? '0 8px 32px rgba(139, 92, 246, 0.25)' : 'none';
+                  target.style.background = newTodoTitle.trim() ? 'linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #C084FC 100%)' : 'rgba(226, 232, 240, 0.8)';
                 }}
               >
                 Add
@@ -228,12 +259,14 @@ export const SimpleApp: React.FC = () => {
           </form>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Tab Navigation with Liquid Glass */}
         <div style={{
-          backgroundColor: 'white',
-          borderBottom: '1px solid #e8f4f8',
-          padding: '0 20px',
-          flexShrink: 0
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+          padding: '0 24px',
+          flexShrink: 0,
+          boxShadow: '0 1px 16px rgba(0, 0, 0, 0.04)'
         }}>
           <div style={{
             display: 'flex',
@@ -244,30 +277,36 @@ export const SimpleApp: React.FC = () => {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 style={{
-                  padding: '16px 20px',
+                  padding: '18px 24px',
                   border: 'none',
-                  backgroundColor: 'transparent',
-                  color: activeTab === tab ? '#00b4db' : '#64748b',
+                  background: activeTab === tab 
+                    ? 'rgba(139, 92, 246, 0.1)' 
+                    : 'transparent',
+                  color: activeTab === tab ? '#8B5CF6' : '#6b7280',
                   fontSize: '15px',
                   fontWeight: '600',
                   cursor: 'pointer',
-                  borderBottom: activeTab === tab ? '3px solid #00d4aa' : '3px solid transparent',
-                  transition: 'all 0.3s ease',
+                  borderBottom: activeTab === tab ? '3px solid #8B5CF6' : '3px solid transparent',
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                   textTransform: 'capitalize',
-                  borderRadius: '8px 8px 0 0'
+                  borderRadius: '12px 12px 0 0',
+                  backdropFilter: activeTab === tab ? 'blur(12px)' : 'none',
+                  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
                 }}
                 onMouseEnter={(e) => {
                   if (activeTab !== tab) {
                     const target = e.target as HTMLButtonElement;
-                    target.style.backgroundColor = '#f8fdff';
-                    target.style.color = '#00b4db';
+                    target.style.background = 'rgba(139, 92, 246, 0.05)';
+                    target.style.color = '#8B5CF6';
+                    target.style.transform = 'translateY(-1px)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (activeTab !== tab) {
                     const target = e.target as HTMLButtonElement;
-                    target.style.backgroundColor = 'transparent';
-                    target.style.color = '#64748b';
+                    target.style.background = 'transparent';
+                    target.style.color = '#6b7280';
+                    target.style.transform = 'translateY(0)';
                   }
                 }}
               >
@@ -277,11 +316,12 @@ export const SimpleApp: React.FC = () => {
           </div>
         </div>
 
-        {/* Todo List - Scrollable Content */}
+        {/* Todo List - Scrollable Content with Liquid Glass */}
         <div style={{
           flex: 1,
           overflow: 'auto',
-          backgroundColor: 'white',
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%)',
+          backdropFilter: 'blur(16px)',
           WebkitOverflowScrolling: 'touch'
         }}>
           {filteredTodos().length === 0 ? (
@@ -322,69 +362,74 @@ export const SimpleApp: React.FC = () => {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    padding: window.innerWidth <= 768 ? '12px 0' : '20px 0', // Reduced padding for mobile
+                    padding: window.innerWidth <= 768 ? '16px 0' : '20px 0', // Better mobile touch targets
                     borderBottom: index < filteredTodos().length - 1 ? '1px solid #f1f8fc' : 'none',
                     transition: 'all 0.3s ease'
                   }}
                   onMouseEnter={(e) => (e.currentTarget as HTMLDivElement).style.backgroundColor = '#f8fdff'}
                   onMouseLeave={(e) => (e.currentTarget as HTMLDivElement).style.backgroundColor = 'transparent'}
                 >
-                  {/* Modern Checkbox */}
+                  {/* Modern 2025 Checkbox */}
                   <button
                     onClick={() => handleToggleTodo(todo.id)}
                     style={{
-                      width: window.innerWidth <= 768 ? '28px' : '32px', // Smaller on mobile
-                      height: window.innerWidth <= 768 ? '28px' : '32px',
-                      borderRadius: window.innerWidth <= 768 ? '14px' : '16px',
-                      border: 'none',
+                      width: window.innerWidth <= 768 ? '44px' : '48px', // 44px minimum touch target
+                      height: window.innerWidth <= 768 ? '44px' : '48px',
+                      borderRadius: window.innerWidth <= 768 ? '22px' : '24px',
+                      border: todo.completed ? 'none' : '2px solid rgba(139, 92, 246, 0.2)',
                       background: todo.completed 
-                        ? 'linear-gradient(135deg, #00d4aa 0%, #00b4db 100%)'
-                        : '#f0f8ff',
+                        ? 'linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #C084FC 100%)'
+                        : 'rgba(248, 250, 252, 0.8)',
+                      backdropFilter: 'blur(12px)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      marginRight: window.innerWidth <= 768 ? '16px' : '20px', // Less margin on mobile
-                      transition: 'all 0.3s ease',
+                      marginRight: window.innerWidth <= 768 ? '16px' : '20px',
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                       boxShadow: todo.completed 
-                        ? '0 4px 15px rgba(0,212,170,0.3)' 
-                        : '0 2px 8px rgba(0,180,219,0.1)'
+                        ? '0 8px 32px rgba(139, 92, 246, 0.3), 0 0 0 1px rgba(139, 92, 246, 0.2)' 
+                        : '0 4px 20px rgba(139, 92, 246, 0.08)'
                     }}
                     onMouseEnter={(e) => {
                       if (!todo.completed) {
                         const target = e.target as HTMLButtonElement;
-                        target.style.background = 'linear-gradient(135deg, #e6fff9 0%, #e6f7ff 100%)';
+                        target.style.background = 'rgba(139, 92, 246, 0.1)';
+                        target.style.borderColor = 'rgba(139, 92, 246, 0.3)';
                         target.style.transform = 'scale(1.1)';
-                        target.style.boxShadow = '0 4px 15px rgba(0,180,219,0.2)';
+                        target.style.boxShadow = '0 8px 32px rgba(139, 92, 246, 0.2)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!todo.completed) {
                         const target = e.target as HTMLButtonElement;
-                        target.style.background = '#f0f8ff';
+                        target.style.background = 'rgba(248, 250, 252, 0.8)';
+                        target.style.borderColor = 'rgba(139, 92, 246, 0.2)';
                         target.style.transform = 'scale(1)';
-                        target.style.boxShadow = '0 2px 8px rgba(0,180,219,0.1)';
+                        target.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.08)';
                       }
                     }}
                   >
                     {todo.completed && (
                       <CheckIcon 
-                        size={window.innerWidth <= 768 ? 16 : 18} 
+                        size={window.innerWidth <= 768 ? 20 : 22} 
                         color="white" 
                       />
                     )}
                   </button>
 
-                  {/* Todo Text */}
+                  {/* Todo Text with 2025 Typography */}
                   <span
                     style={{
                       flex: 1,
                       fontSize: window.innerWidth <= 768 ? '16px' : '17px', // Smaller font on mobile
                       color: todo.completed ? '#94a3b8' : '#1e293b',
                       textDecoration: todo.completed ? 'line-through' : 'none',
-                      transition: 'all 0.3s ease',
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                       fontWeight: '500',
-                      lineHeight: window.innerWidth <= 768 ? '1.3' : '1.4' // Tighter line height on mobile
+                      lineHeight: window.innerWidth <= 768 ? '1.3' : '1.4', // Tighter line height on mobile
+                      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+                      opacity: todo.completed ? 0.7 : 1
                     }}
                   >
                     {todo.title}
@@ -394,13 +439,13 @@ export const SimpleApp: React.FC = () => {
                   <button
                     onClick={() => handleDeleteTodo(todo.id)}
                     style={{
-                      width: window.innerWidth <= 768 ? '36px' : '40px', // Smaller on mobile
-                      height: window.innerWidth <= 768 ? '36px' : '40px',
-                      borderRadius: window.innerWidth <= 768 ? '18px' : '20px',
+                      width: window.innerWidth <= 768 ? '44px' : '48px', // 44px minimum touch target
+                      height: window.innerWidth <= 768 ? '44px' : '48px',
+                      borderRadius: window.innerWidth <= 768 ? '22px' : '24px',
                       background: 'none',
                       border: 'none',
                       color: '#ef4444',
-                      fontSize: window.innerWidth <= 768 ? '20px' : '24px', // Smaller icon on mobile
+                      fontSize: window.innerWidth <= 768 ? '24px' : '28px', // Better visibility
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -430,17 +475,17 @@ export const SimpleApp: React.FC = () => {
         </div>
       </div>
 
-      {/* Modern Bottom Navigation */}
+      {/* Modern 2025 Bottom Navigation */}
       <div style={{
-        backgroundColor: 'white',
-        borderTop: '1px solid #e8f4f8',
-        padding: window.innerWidth <= 768 ? '12px 20px 16px 20px' : '16px 20px 24px 20px', // Less padding on mobile
-        boxShadow: '0 -8px 30px rgba(0,180,219,0.08)',
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(24px)',
+        borderTop: '1px solid rgba(139, 92, 246, 0.1)',
+        padding: window.innerWidth <= 768 ? '16px 24px 20px 24px' : '20px 24px 28px 24px', // Better spacing
+        boxShadow: '0 -12px 40px rgba(139, 92, 246, 0.08), 0 -1px 8px rgba(0, 0, 0, 0.05)',
         display: 'flex',
         justifyContent: 'space-around',
         alignItems: 'center',
-        flexShrink: 0,
-        backdropFilter: 'blur(10px)'
+        flexShrink: 0
       }}>
         <button
           onClick={() => setActiveTab('all')}
@@ -448,28 +493,32 @@ export const SimpleApp: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            background: 'none',
+            background: activeTab === 'all' ? 'rgba(139, 92, 246, 0.1)' : 'none',
             border: 'none',
-            color: activeTab === 'all' ? '#00b4db' : '#94a3b8',
+            color: activeTab === 'all' ? '#8B5CF6' : '#94a3b8',
             fontSize: '12px',
             fontWeight: '600',
             cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            padding: window.innerWidth <= 768 ? '8px 12px' : '12px 16px', // Less padding on mobile
-            borderRadius: '16px'
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            padding: window.innerWidth <= 768 ? '12px 16px' : '16px 20px', // Better touch targets
+            borderRadius: '20px',
+            backdropFilter: activeTab === 'all' ? 'blur(12px)' : 'none',
+            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
           }}
           onMouseEnter={(e) => {
             if (activeTab !== 'all') {
               const target = e.target as HTMLButtonElement;
-              target.style.backgroundColor = '#f8fdff';
-              target.style.color = '#00b4db';
+              target.style.background = 'rgba(139, 92, 246, 0.08)';
+              target.style.color = '#8B5CF6';
+              target.style.transform = 'translateY(-2px)';
             }
           }}
           onMouseLeave={(e) => {
             if (activeTab !== 'all') {
               const target = e.target as HTMLButtonElement;
-              target.style.backgroundColor = 'transparent';
+              target.style.background = 'transparent';
               target.style.color = '#94a3b8';
+              target.style.transform = 'translateY(0)';
             }
           }}
         >
@@ -485,28 +534,32 @@ export const SimpleApp: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            background: 'none',
+            background: activeTab === 'pending' ? 'rgba(139, 92, 246, 0.1)' : 'none',
             border: 'none',
-            color: activeTab === 'pending' ? '#00b4db' : '#94a3b8',
+            color: activeTab === 'pending' ? '#8B5CF6' : '#94a3b8',
             fontSize: '12px',
             fontWeight: '600',
             cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            padding: window.innerWidth <= 768 ? '8px 12px' : '12px 16px', // Less padding on mobile
-            borderRadius: '16px'
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            padding: window.innerWidth <= 768 ? '12px 16px' : '16px 20px', // Better touch targets
+            borderRadius: '20px',
+            backdropFilter: activeTab === 'pending' ? 'blur(12px)' : 'none',
+            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
           }}
           onMouseEnter={(e) => {
             if (activeTab !== 'pending') {
               const target = e.target as HTMLButtonElement;
-              target.style.backgroundColor = '#f8fdff';
-              target.style.color = '#00b4db';
+              target.style.background = 'rgba(139, 92, 246, 0.08)';
+              target.style.color = '#8B5CF6';
+              target.style.transform = 'translateY(-2px)';
             }
           }}
           onMouseLeave={(e) => {
             if (activeTab !== 'pending') {
               const target = e.target as HTMLButtonElement;
-              target.style.backgroundColor = 'transparent';
+              target.style.background = 'transparent';
               target.style.color = '#94a3b8';
+              target.style.transform = 'translateY(0)';
             }
           }}
         >
@@ -522,28 +575,32 @@ export const SimpleApp: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            background: 'none',
+            background: activeTab === 'completed' ? 'rgba(139, 92, 246, 0.1)' : 'none',
             border: 'none',
-            color: activeTab === 'completed' ? '#00b4db' : '#94a3b8',
+            color: activeTab === 'completed' ? '#8B5CF6' : '#94a3b8',
             fontSize: '12px',
             fontWeight: '600',
             cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            padding: window.innerWidth <= 768 ? '8px 12px' : '12px 16px', // Less padding on mobile
-            borderRadius: '16px'
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            padding: window.innerWidth <= 768 ? '12px 16px' : '16px 20px', // Better touch targets
+            borderRadius: '20px',
+            backdropFilter: activeTab === 'completed' ? 'blur(12px)' : 'none',
+            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
           }}
           onMouseEnter={(e) => {
             if (activeTab !== 'completed') {
               const target = e.target as HTMLButtonElement;
-              target.style.backgroundColor = '#f8fdff';
-              target.style.color = '#00b4db';
+              target.style.background = 'rgba(139, 92, 246, 0.08)';
+              target.style.color = '#8B5CF6';
+              target.style.transform = 'translateY(-2px)';
             }
           }}
           onMouseLeave={(e) => {
             if (activeTab !== 'completed') {
               const target = e.target as HTMLButtonElement;
-              target.style.backgroundColor = 'transparent';
+              target.style.background = 'transparent';
               target.style.color = '#94a3b8';
+              target.style.transform = 'translateY(0)';
             }
           }}
         >

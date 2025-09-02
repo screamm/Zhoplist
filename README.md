@@ -2,6 +2,19 @@
 
 En modern, mobile-first shopping list-applikation byggd med React 18, TypeScript och Tailwind CSS v3.4. Appen använder glassmorphism design och är optimerad för mobila enheter med swipe-gester och pull-to-refresh.
 
+## 🌐 **Live Demo**
+
+**Applikationen är nu live i produktion!**
+
+- **🎯 Huvudsida:** https://2fc3c7d3.zhoplist-frontend.pages.dev
+- **📋 Delad lista (demo):** https://2fc3c7d3.zhoplist-frontend.pages.dev?lista=test-2024
+- **⚡ API:** https://zhoplist-api.davidrydgren.workers.dev
+
+### ✨ **Prova funktionerna:**
+1. **Automatisk session:** Besök huvudsidan - du får automatiskt din egen lista
+2. **Delbara listor:** Skapa en egen kod via "Hantera Lista" knappen
+3. **URL-delning:** Dela URL:en med `?lista=din-kod` till familj/vänner
+
 ## ✨ Funktioner
 
 ### 🎯 Grundfunktioner

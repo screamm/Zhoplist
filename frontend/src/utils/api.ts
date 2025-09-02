@@ -18,9 +18,12 @@ let lastApiCheck = 0;
 const API_CHECK_INTERVAL = 30000; // Check API availability every 30 seconds
 
 class APIError extends Error {
-  constructor(message: string, public status?: number) {
+  public status?: number;
+  
+  constructor(message: string, status?: number) {
     super(message);
     this.name = 'APIError';
+    this.status = status;
   }
 }
 
@@ -53,7 +56,6 @@ const apiRequest = async <T>(endpoint: string, options?: RequestInit): Promise<T
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
       throw new APIError(
         `API Error: ${response.status} ${response.statusText}`,
         response.status
@@ -67,7 +69,7 @@ const apiRequest = async <T>(endpoint: string, options?: RequestInit): Promise<T
     }
     
     // If network error and we're in development, fall back to mock
-    if (USE_MOCK_DATA && (error instanceof TypeError || error.name === 'AbortError')) {
+    if (USE_MOCK_DATA && (error instanceof TypeError || (error as Error).name === 'AbortError')) {
       console.warn('API not available, using mock data');
       throw new APIError('API unavailable, using offline mode');
     }
@@ -136,9 +138,16 @@ export const api = {
   getTodos: async (): Promise<Todo[]> => {
     console.log('🌐 API: getTodos called');
     const result = await tryApiOrMock(
-      () => apiRequest<APIResponse<Todo[]>>('/api/todos').then(res => {
+      () => apiRequest<Todo[] | APIResponse<Todo[]>>('/api/todos').then(res => {
         console.log('🌐 API: getTodos response:', res);
-        return res.data;
+        // Handle both old and new API format
+        if (Array.isArray(res)) {
+          return res; // Old format: direct array
+        } else if ('data' in res && res.data) {
+          return res.data; // New format: wrapped in APIResponse
+        } else {
+          return []; // Fallback
+        }
       }),
       () => mockAPI.getTodos()
     );
@@ -150,12 +159,17 @@ export const api = {
   createTodo: async (todo: TodoFormData): Promise<Todo> => {
     console.log('🌐 API: createTodo called with:', todo);
     const result = await tryApiOrMock(
-      () => apiRequest<APIResponse<Todo>>('/api/todos', {
+      () => apiRequest<Todo | APIResponse<Todo>>('/api/todos', {
         method: 'POST',
         body: JSON.stringify(todo),
       }).then(res => {
         console.log('🌐 API: createTodo response:', res);
-        return res.data;
+        // Handle both old and new API format
+        if ('data' in res && res.data) {
+          return res.data; // New format
+        } else {
+          return res as Todo; // Old format
+        }
       }),
       () => mockAPI.createTodo(todo)
     );
@@ -197,9 +211,9 @@ export const api = {
   // Delete all completed todos
   deleteCompletedTodos: async (): Promise<{ message: string; deletedCount: number }> => {
     return tryApiOrMock(
-      () => apiRequest<APIResponse<{ message: string; deletedCount: number }>>('/api/todos/completed', {
+      () => apiRequest<APIResponse<{ deletedCount: number }>>('/api/todos/completed', {
         method: 'DELETE',
-      }).then(res => res.data),
+      }).then(res => ({ message: res.message || 'Completed todos deleted', deletedCount: res.data.deletedCount })),
       () => mockAPI.deleteCompletedTodos()
     );
   },
@@ -208,7 +222,7 @@ export const api = {
   healthCheck: async (): Promise<{ status: string }> => {
     try {
       return await apiRequest<{ status: string }>('/health');
-    } catch (error) {
+    } catch {
       return { status: 'offline' };
     }
   },
@@ -262,11 +276,11 @@ export const retryApiCall = async <T>(
 };
 
 // Debounce utility for API calls
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (...args: unknown[]) => unknown>(
   func: T,
   delay: number
 ): ((...args: Parameters<T>) => void) => {
-  let timeoutId: NodeJS.Timeout;
+  let timeoutId: ReturnType<typeof setTimeout>;
 
   return (...args: Parameters<T>) => {
     clearTimeout(timeoutId);

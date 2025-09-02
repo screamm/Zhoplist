@@ -10,7 +10,7 @@ ENVIRONMENT = "development"
 [[d1_databases]]
 binding = "DB"
 database_name = "zhoplist-db"
-database_id = "67ba17d9-2882-46dd-aa37-c5e8f9971907"
+database_id = "0dd7bd8c-7e0c-422b-b143-5b75188d5996"
 
 # CORS headers for API
 [env.production.vars]

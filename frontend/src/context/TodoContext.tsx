@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { Todo, TodoFormData, TodoFilter, TodoSort, ToastNotification } from '../types/index.js';
 import { api } from '../utils/api.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -80,14 +80,15 @@ const todoReducer = (state: TodoState, action: TodoAction): TodoState => {
     case 'SET_ERROR':
       return { ...state, error: action.payload, isLoading: false };
 
-    case 'SET_TODOS':
+    case 'SET_TODOS': {
       console.log('📝 SET_TODOS: setting todos to:', action.payload);
       const newState1 = { ...state, todos: action.payload, isLoading: false, error: null };
       console.log('📝 SET_TODOS: new state:', newState1);
       saveToStorage(action.payload); // Auto-save to localStorage
       return newState1;
+    }
 
-    case 'ADD_TODO':
+    case 'ADD_TODO': {
       console.log('➕ ADD_TODO: adding todo:', action.payload);
       console.log('➕ ADD_TODO: current todos:', state.todos);
       const newTodos = [action.payload, ...(state.todos || [])];
@@ -99,6 +100,7 @@ const todoReducer = (state: TodoState, action: TodoAction): TodoState => {
       console.log('➕ ADD_TODO: new state:', newState2);
       saveToStorage(newTodos); // Auto-save to localStorage
       return newState2;
+    }
 
     case 'UPDATE_TODO':
       return {

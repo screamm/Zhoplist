@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import type { TodoFilter } from '../types/index.js';
 import { useTodo } from '../context/TodoContext';
 import { ListManager } from './ListManager';
 import { 
@@ -17,7 +16,15 @@ import {
   MenuIcon
 } from './icons/Icons';
 
-const categoryConfig = {
+// Category configuration type
+interface CategoryConfig {
+  color: string;
+  icon: React.FC<{ size: number; color: string }>;
+  bgColor: string;
+  featured?: boolean;
+}
+
+const categoryConfig: Record<string, CategoryConfig> = {
   'Mat': { color: 'from-orange-500 to-orange-600', icon: FoodIcon, bgColor: 'bg-orange-500' },
   'Kött': { color: 'from-yellow-500 to-yellow-600', icon: MeatIcon, bgColor: 'bg-yellow-500' },
   'Mejeri': { color: 'from-cyan-400 to-cyan-500', icon: DairyIcon, bgColor: 'bg-cyan-400', featured: true },
@@ -28,21 +35,10 @@ const categoryConfig = {
 };
 
 export const Header: React.FC = () => {
-  const { state, setSearchQuery, setFilter } = useTodo();
+  const { state, setSearchQuery } = useTodo();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showListManager, setShowListManager] = useState(false);
-
-  // Safety check for state
-  if (!state) {
-    return (
-      <header className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 min-h-screen">
-        <div className="flex items-center justify-center py-8">
-          <div className="text-white">Laddar...</div>
-        </div>
-      </header>
-    );
-  }
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -54,7 +50,8 @@ export const Header: React.FC = () => {
 
   // Group todos by category
   const todosByCategory = React.useMemo(() => {
-    const categories: Record<string, { todos: any[], completed: number, total: number }> = {};
+    const categories: Record<string, { todos: typeof state.todos, completed: number, total: number }> = {};
+    if (!state?.todos) return categories;
     
     (state.todos || []).forEach(todo => {
       // Safety check for undefined/null todos
@@ -74,7 +71,18 @@ export const Header: React.FC = () => {
     });
 
     return categories;
-  }, [state.todos]);
+  }, [state]);
+
+  // Safety check for state
+  if (!state) {
+    return (
+      <header className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 min-h-screen">
+        <div className="flex items-center justify-center py-8">
+          <div className="text-white">Laddar...</div>
+        </div>
+      </header>
+    );
+  }
 
   if (selectedCategory) {
     // Detail view for selected category
