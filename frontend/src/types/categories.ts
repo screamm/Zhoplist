@@ -3,6 +3,7 @@
 export interface Category {
   id: string;
   name: string;
+  nameKey: string; // Translation key for the name
   icon: string;
   color: string;
   bgColor: string;
@@ -13,6 +14,7 @@ export const SHOPPING_CATEGORIES: Category[] = [
   {
     id: 'dairy',
     name: 'Dairy Products',
+    nameKey: 'dairyProducts',
     icon: '🥛',
     color: '#60A5FA',
     bgColor: 'bg-blue-500',
@@ -21,6 +23,7 @@ export const SHOPPING_CATEGORIES: Category[] = [
   {
     id: 'fruits',
     name: 'Fruits',
+    nameKey: 'fruits',
     icon: '🍎',
     color: '#A855F7',
     bgColor: 'bg-purple-500',
@@ -28,7 +31,8 @@ export const SHOPPING_CATEGORIES: Category[] = [
   },
   {
     id: 'vegetables',
-    name: 'Vegetable',
+    name: 'Vegetables',
+    nameKey: 'vegetables',
     icon: '🥬',
     color: '#22C55E',
     bgColor: 'bg-green-500',
@@ -37,6 +41,7 @@ export const SHOPPING_CATEGORIES: Category[] = [
   {
     id: 'meat',
     name: 'Meat',
+    nameKey: 'meat',
     icon: '🥩',
     color: '#EAB308',
     bgColor: 'bg-yellow-500',
@@ -45,6 +50,7 @@ export const SHOPPING_CATEGORIES: Category[] = [
   {
     id: 'fish',
     name: 'Fish',
+    nameKey: 'fish',
     icon: '🐟',
     color: '#F97316',
     bgColor: 'bg-orange-500',
@@ -53,6 +59,7 @@ export const SHOPPING_CATEGORIES: Category[] = [
   {
     id: 'bread',
     name: 'Breads and pastries',
+    nameKey: 'breadsAndPastries',
     icon: '🍞',
     color: '#EC4899',
     bgColor: 'bg-pink-500',
@@ -61,6 +68,7 @@ export const SHOPPING_CATEGORIES: Category[] = [
   {
     id: 'pantry',
     name: 'Pantry',
+    nameKey: 'pantry',
     icon: '🥫',
     color: '#8B5CF6',
     bgColor: 'bg-violet-500',
@@ -69,6 +77,7 @@ export const SHOPPING_CATEGORIES: Category[] = [
   {
     id: 'frozen',
     name: 'Frozen',
+    nameKey: 'frozen',
     icon: '🧊',
     color: '#06B6D4',
     bgColor: 'bg-cyan-500',
@@ -77,6 +86,7 @@ export const SHOPPING_CATEGORIES: Category[] = [
   {
     id: 'drinks',
     name: 'Drinks',
+    nameKey: 'drinks',
     icon: '🥤',
     color: '#10B981',
     bgColor: 'bg-emerald-500',
@@ -85,6 +95,7 @@ export const SHOPPING_CATEGORIES: Category[] = [
   {
     id: 'snacks',
     name: 'Snacks',
+    nameKey: 'snacks',
     icon: '🍿',
     color: '#F59E0B',
     bgColor: 'bg-amber-500',
@@ -93,6 +104,7 @@ export const SHOPPING_CATEGORIES: Category[] = [
   {
     id: 'household',
     name: 'Household',
+    nameKey: 'household',
     icon: '🧽',
     color: '#6366F1',
     bgColor: 'bg-indigo-500',
@@ -101,6 +113,7 @@ export const SHOPPING_CATEGORIES: Category[] = [
   {
     id: 'personal',
     name: 'Personal Care',
+    nameKey: 'personalCare',
     icon: '🧴',
     color: '#EF4444',
     bgColor: 'bg-red-500',

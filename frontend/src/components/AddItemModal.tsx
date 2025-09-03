@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTodo } from '../context/TodoContext';
+import { useLanguage } from '../context/LanguageContext';
 import { SHOPPING_CATEGORIES, getCategoryById } from '../types/categories';
 import { X, Plus, ShoppingBag } from 'lucide-react';
 
@@ -11,6 +12,7 @@ interface AddItemModalProps {
 
 export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, defaultCategory }) => {
   const { createTodo } = useTodo();
+  const { t } = useLanguage();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState(defaultCategory || '');
@@ -81,9 +83,9 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
                 </div>
               )}
               <div>
-                <h2 className="text-lg sm:text-xl font-bold text-white">Lägg till vara</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-white">{t.addItem}</h2>
                 {selectedCategoryData && (
-                  <p className="text-sm text-gray-400">{selectedCategoryData.name}</p>
+                  <p className="text-sm text-gray-400">{t[selectedCategoryData.nameKey as keyof typeof t]}</p>
                 )}
               </div>
             </div>
@@ -99,14 +101,14 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">
-              Vara *
+              {t.itemName} *
             </label>
             <input
               ref={inputRef}
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="t.ex. Mjölk, Äpplen, Bröd"
+              placeholder={t.itemName}
               className="w-full px-4 py-4 bg-gray-800/50 border border-gray-600 rounded-2xl text-white placeholder-gray-500 focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all text-base touch-target"
               required
             />
@@ -115,17 +117,17 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
           {!defaultCategory && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
-                Kategori
+                {t.category}
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full px-4 py-4 bg-gray-800/50 border border-gray-600 rounded-2xl text-white focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all text-base touch-target"
               >
-                <option value="">Välj kategori...</option>
+                <option value="">{t.selectCategory}...</option>
                 {SHOPPING_CATEGORIES.map(cat => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.icon} {cat.name}
+                    {cat.icon} {t[cat.nameKey as keyof typeof t]}
                   </option>
                 ))}
               </select>
@@ -134,13 +136,13 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">
-              Anteckning <span className="text-gray-500">(valfri)</span>
+              {t.description} <span className="text-gray-500">({t.optional})</span>
             </label>
             <input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="t.ex. 2 liter, ekologisk, stor förpackning"
+              placeholder={t.description}
               className="w-full px-4 py-4 bg-gray-800/50 border border-gray-600 rounded-2xl text-white placeholder-gray-500 focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all text-base touch-target"
             />
           </div>
@@ -152,7 +154,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
               className="flex-1 px-4 py-4 bg-gray-800/50 text-gray-300 rounded-2xl hover:bg-gray-700 transition-all text-base font-medium touch-target"
               disabled={isSubmitting}
             >
-              Avbryt
+              {t.cancel}
             </button>
             <button
               type="submit"
@@ -162,12 +164,12 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
               {isSubmitting ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Lägger till...
+                  {t.add}...
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Lägg till
+                  {t.add}
                 </>
               )}
             </button>

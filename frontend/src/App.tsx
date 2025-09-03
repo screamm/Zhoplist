@@ -1,5 +1,6 @@
 // React import not needed in React 19
 import { TodoProvider } from './context/TodoContext';
+import { LanguageProvider } from './context/LanguageContext';
 import './App.css';
 import { ModernShoppingList } from './components/ModernShoppingList';
 import { EditTodoModal } from './components/EditTodoModal';
@@ -18,9 +19,11 @@ function AppContent() {
 
 function App() {
   return (
-    <TodoProvider>
-      <AppContent />
-    </TodoProvider>
+    <LanguageProvider>
+      <TodoProvider>
+        <AppContent />
+      </TodoProvider>
+    </LanguageProvider>
   );
 }
 
