@@ -62,7 +62,7 @@ export const createMockAPI = () => {
     getTodos: () => Promise.resolve([...todos]),
     createTodo: (todoData: TodoFormData) => {
       const newTodo: Todo = {
-        id: Date.now().toString(),
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         title: todoData.title,
         description: todoData.description || '',
         completed: false,

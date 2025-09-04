@@ -39,6 +39,21 @@ interface Translations {
   close: string;
   loadSampleData: string;
   optional: string;
+  
+  // Menu items
+  menu: string;
+  saveList: string;
+  openList: string;
+  newList: string;
+  deleteList: string;
+  
+  // Save/Open dialogs
+  saveListAs: string;
+  listName: string;
+  overwriteList: string;
+  savedLists: string;
+  noSavedLists: string;
+  maxListsReached: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -79,6 +94,21 @@ const translations: Record<Language, Translations> = {
     close: 'Stäng',
     loadSampleData: 'Ladda exempeldata',
     optional: 'valfri',
+    
+    // Menu items
+    menu: 'Meny',
+    saveList: 'Spara lista',
+    openList: 'Öppna lista', 
+    newList: 'Ny lista',
+    deleteList: 'Ta bort lista',
+    
+    // Save/Open dialogs
+    saveListAs: 'Spara lista som',
+    listName: 'Listnamn',
+    overwriteList: 'Skriv över befintlig lista?',
+    savedLists: 'Sparade listor',
+    noSavedLists: 'Inga sparade listor',
+    maxListsReached: 'Max 5 listor kan sparas',
   },
   en: {
     // Header
@@ -117,6 +147,21 @@ const translations: Record<Language, Translations> = {
     close: 'Close',
     loadSampleData: 'Load Sample Data',
     optional: 'optional',
+    
+    // Menu items
+    menu: 'Menu',
+    saveList: 'Save List',
+    openList: 'Open List',
+    newList: 'New List', 
+    deleteList: 'Delete List',
+    
+    // Save/Open dialogs
+    saveListAs: 'Save List As',
+    listName: 'List Name',
+    overwriteList: 'Overwrite existing list?',
+    savedLists: 'Saved Lists',
+    noSavedLists: 'No saved lists',
+    maxListsReached: 'Max 5 lists can be saved',
   },
 };
 

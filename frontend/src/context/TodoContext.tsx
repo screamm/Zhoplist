@@ -177,6 +177,7 @@ interface TodoContextType {
   deleteTodo: (id: string) => Promise<void>;
   toggleTodo: (id: string) => Promise<void>;
   deleteCompleted: () => Promise<void>;
+  setTodos: (todos: Todo[]) => void;
   // UI actions
   setFilter: (filter: TodoFilter) => void;
   setSort: (sort: TodoSort) => void;
@@ -417,6 +418,10 @@ export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'SET_EDITING_TODO', payload: null });
   };
 
+  const setTodos = (todos: Todo[]) => {
+    dispatch({ type: 'SET_TODOS', payload: todos });
+  };
+
   // Computed filtered and sorted todos
   const filteredTodos = React.useMemo(() => {
     console.log('🔍 Computing filteredTodos. State:', state);
@@ -496,7 +501,7 @@ export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     console.log('🎯 Final filteredTodos result:', filtered);
     return filtered;
-  }, [state.todos, state.filter, state.sort, state.searchQuery]);
+  }, [state.todos, state.filter, state.sort, state.searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Log dependency changes
   React.useEffect(() => {
@@ -515,6 +520,7 @@ export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     deleteTodo,
     toggleTodo,
     deleteCompleted,
+    setTodos,
     setFilter,
     setSort,
     setSearchQuery,
