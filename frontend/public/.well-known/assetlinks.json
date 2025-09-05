@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.zhoplist.app",
+    "sha256_cert_fingerprints": [
+      "LÄGG_TILL_DIN_SHA256_FINGERPRINT_HÄR"
+    ]
+  }
+}]

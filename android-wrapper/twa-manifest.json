@@ -1,0 +1,64 @@
+{
+  "packageId": "com.zhoplist.app",
+  "host": "zhoplist.com",
+  "name": "Zhoplist",
+  "launcherName": "Zhoplist",
+  "display": "standalone",
+  "themeColor": "#10b981",
+  "navigationColor": "#0f172a",
+  "navigationColorDark": "#0f172a",
+  "navigationDividerColor": "#10b981",
+  "navigationDividerColorDark": "#10b981",
+  "backgroundColor": "#0f172a",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://zhoplist.com/icon-512.svg",
+  "maskableIconUrl": "https://zhoplist.com/icon-512.svg",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Ny lista",
+      "shortName": "Ny",
+      "url": "/?action=new-list",
+      "iconUrl": "https://zhoplist.com/icon-192.svg"
+    },
+    {
+      "name": "Senaste listan",
+      "shortName": "Senaste",
+      "url": "/?action=recent",
+      "iconUrl": "https://zhoplist.com/icon-192.svg"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://zhoplist.com/manifest.json",
+  "fallbackType": "customtabs",
+  "enableSiteSettingsShortcut": true,
+  "orientation": "portrait",
+  "fingerprints": [
+    {
+      "value": "YOUR_SHA256_FINGERPRINT_HERE"
+    }
+  ],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "appVersion": "1.0.0",
+  "minSdkVersion": 19,
+  "targetSdkVersion": 33,
+  "useBrowserOnChromeOS": false,
+  "includeSourceCode": false,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://zhoplist.com/",
+  "monochrome": {
+    "enabled": false
+  },
+  "playBilling": {
+    "enabled": true
+  }
+}

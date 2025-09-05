@@ -1,24 +1,56 @@
 {
-  "name": "Zhoplist - Modern Shopping List App",
+  "name": "Zhoplist - Smart Shopping List",
   "short_name": "Zhoplist",
-  "description": "En modern shopping list-app med glassmorphism design och mobile-first UX",
+  "description": "Din smarta inköpslista - synkroniserad, offline-redo och familjevänlig",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0f172a",
-  "theme_color": "#6366f1",
+  "theme_color": "#10b981",
   "orientation": "portrait-primary",
-  "categories": ["productivity", "utilities"],
+  "categories": ["productivity", "utilities", "shopping"],
   "icons": [
     {
       "src": "/icon-192.svg",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512.svg", 
       "sizes": "512x512",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ],
-  "shortcuts": []
+  "shortcuts": [
+    {
+      "name": "Ny lista",
+      "short_name": "Ny",
+      "description": "Skapa en ny inköpslista",
+      "url": "/?action=new-list",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Senaste listan",
+      "short_name": "Senaste",
+      "description": "Öppna din senaste lista",
+      "url": "/?action=recent",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 } 

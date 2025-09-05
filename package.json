@@ -52,5 +52,8 @@
   "bugs": {
     "url": "https://github.com/screamm/Zhoplist/issues"
   },
-  "homepage": "https://zhoplist.pages.dev"
-} 
+  "homepage": "https://zhoplist.pages.dev",
+  "dependencies": {
+    "wrangler": "^4.34.0"
+  }
+}
