@@ -144,17 +144,22 @@ export function setupOfflineHandling() {
 
 // Synka offline-data
 async function syncOfflineData() {
-  if ('sync' in self.registration) {
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
     try {
-      await (self.registration as any).sync.register('sync-todos');
-      console.log('Bakgrundssynk schemalagd');
+      const registration = await navigator.serviceWorker.ready;
+      if ('sync' in registration) {
+        await (registration as any).sync.register('sync-todos');
+        console.log('Bakgrundssynk schemalagd');
+      } else {
+        manualSync();
+      }
     } catch (error) {
       console.error('Bakgrundssynk misslyckades:', error);
       // Fallback: synka direkt
       manualSync();
     }
   } else {
-    // Ingen bakgrundssynk-support, synka direkt
+    // Ingen serviceWorker-support, synka direkt
     manualSync();
   }
 }

@@ -59,10 +59,9 @@ export class AdManager {
         const { AdMob } = await import('@capacitor-community/admob');
         
         await AdMob.initialize({
-          requestTrackingAuthorization: true,
           testDeviceIdentifiers: ['YOUR_TEST_DEVICE_ID'], // Lägg till ditt test device ID
           initializeForTesting: AD_CONFIG.USE_TEST_ADS,
-        });
+        } as any);
 
         this.adsInitialized = true;
         console.log('AdMob initialized');
@@ -82,10 +81,10 @@ export class AdManager {
     if (!this.adsInitialized || isPremiumUser()) return;
 
     try {
-      const { AdMob, BannerAdOptions, BannerAdSize, BannerAdPosition } = 
+      const { AdMob, BannerAdSize, BannerAdPosition } = 
         await import('@capacitor-community/admob');
       
-      const options: BannerAdOptions = {
+      const options: any = {
         adId: AD_CONFIG.USE_TEST_ADS ? AD_CONFIG.TEST_BANNER_AD_ID : AD_CONFIG.BANNER_AD_ID,
         adSize: BannerAdSize.ADAPTIVE_BANNER,
         position: BannerAdPosition.BOTTOM_CENTER,
@@ -134,9 +133,9 @@ export class AdManager {
     }
 
     try {
-      const { AdMob, AdOptions } = await import('@capacitor-community/admob');
+      const { AdMob } = await import('@capacitor-community/admob');
       
-      const options: AdOptions = {
+      const options: any = {
         adId: AD_CONFIG.USE_TEST_ADS ? AD_CONFIG.TEST_INTERSTITIAL_AD_ID : AD_CONFIG.INTERSTITIAL_AD_ID,
         isTesting: AD_CONFIG.USE_TEST_ADS,
       };
@@ -158,12 +157,12 @@ export class AdManager {
     if (!this.adsInitialized || isPremiumUser()) return false;
 
     try {
-      const { AdMob, AdOptions, RewardAdPluginEvents } = 
+      const { AdMob, RewardAdPluginEvents } = 
         await import('@capacitor-community/admob');
       
       return new Promise(async (resolve) => {
         // Setup reward listener
-        AdMob.addListener(RewardAdPluginEvents.Rewarded, (reward) => {
+        AdMob.addListener(RewardAdPluginEvents.Rewarded, (reward: any) => {
           console.log('User rewarded:', reward);
           this.grantTemporaryPremium();
           resolve(true);
@@ -173,7 +172,7 @@ export class AdManager {
           resolve(false);
         });
 
-        const options: AdOptions = {
+        const options: any = {
           adId: AD_CONFIG.USE_TEST_ADS ? AD_CONFIG.TEST_REWARDED_AD_ID : AD_CONFIG.REWARDED_AD_ID,
           isTesting: AD_CONFIG.USE_TEST_ADS,
         };
@@ -227,7 +226,10 @@ export class AdManager {
 
     try {
       // Detta kräver @capacitor-community/play-billing plugin
-      const { PlayBilling } = await import('@capacitor-community/play-billing');
+      // const { PlayBilling } = await import('@capacitor-community/play-billing');
+      console.log('Play Billing not implemented yet');
+      return false;
+      /*
       
       // Koppla till Play Store
       await PlayBilling.connect();
@@ -264,6 +266,7 @@ export class AdManager {
       }
 
       return false;
+      */
     } catch (error) {
       console.error('Purchase failed:', error);
       this.showNotification('Köpet misslyckades. Försök igen senare.');
@@ -278,7 +281,10 @@ export class AdManager {
     }
 
     try {
-      const { PlayBilling } = await import('@capacitor-community/play-billing');
+      // const { PlayBilling } = await import('@capacitor-community/play-billing');
+      console.log('Play Billing not implemented yet');
+      return false;
+      /*
       
       await PlayBilling.connect();
       
@@ -298,6 +304,7 @@ export class AdManager {
 
       this.showNotification('Inga tidigare köp hittades');
       return false;
+      */
     } catch (error) {
       console.error('Restore failed:', error);
       return false;

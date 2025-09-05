@@ -18,7 +18,6 @@ import {
 
 function AppContent() {
   const { state, dispatch } = useTodo();
-  const [installPromptVisible, setInstallPromptVisible] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   
   useEffect(() => {
@@ -57,14 +56,10 @@ function AppContent() {
       }
     });
     
-    // Lyssna på PWA-events
-    const handleInstallable = () => setInstallPromptVisible(true);
-    const handleInstalled = () => setInstallPromptVisible(false);
+    // Lyssna på online/offline events
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
     
-    window.addEventListener('pwa-installable', handleInstallable);
-    window.addEventListener('pwa-installed', handleInstalled);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
@@ -79,8 +74,6 @@ function AppContent() {
     }
     
     return () => {
-      window.removeEventListener('pwa-installable', handleInstallable);
-      window.removeEventListener('pwa-installed', handleInstalled);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
@@ -95,22 +88,6 @@ function AppContent() {
         </div>
       )}
       
-      {/* PWA Install prompt */}
-      {installPromptVisible && !isPWA() && (
-        <div className="fixed bottom-20 left-4 right-4 bg-green-600 text-white p-4 rounded-lg shadow-lg z-40">
-          <p className="mb-2">Installera Zhoplist för bättre upplevelse!</p>
-          <button 
-            onClick={() => {
-              import('./utils/pwa').then(({ installPWA }) => {
-                installPWA();
-              });
-            }}
-            className="bg-white text-green-600 px-4 py-2 rounded font-semibold"
-          >
-            Installera
-          </button>
-        </div>
-      )}
       
       <ModernShoppingList />
       {state.editingTodo && <EditTodoModal todo={state.editingTodo} />}

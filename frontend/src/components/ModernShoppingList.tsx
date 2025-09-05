@@ -7,12 +7,14 @@ import type { Todo } from '../types/index.js';
 import { AddItemModal } from './AddItemModal.js';
 import { generateShoppingMockData } from '../utils/shoppingMockData.js';
 import { getCategoryIcon } from './CategoryIcons.js';
+import { BottomNavbar } from './BottomNavbar.js';
 
 interface CategoryRowProps {
   category: Category;
   items: Todo[];
   onCategoryClick: () => void;
   isExpanded: boolean;
+  onToggleItem: (itemId: string) => void;
   onAddItem: (categoryId: string) => void;
 }
 
@@ -21,10 +23,10 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
   items, 
   onCategoryClick, 
   isExpanded,
+  onToggleItem,
   onAddItem
 }) => {
   const { t } = useLanguage();
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   
   return (
     <div style={{ 
@@ -165,18 +167,20 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
           {items.map((item) => (
             <div 
               key={item.id}
-              onMouseEnter={() => setHoveredItem(item.id)}
-              onMouseLeave={() => setHoveredItem(null)}
+              onClick={() => onToggleItem(item.id)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '10px 0',
                 opacity: item.completed ? 0.5 : 1,
-                transition: 'opacity 0.2s',
+                transition: 'all 0.2s',
                 borderLeft: `2px solid ${category.color}30`,
                 paddingLeft: '12px',
-                marginLeft: '-12px'
+                marginLeft: '-12px',
+                cursor: 'pointer',
+                borderRadius: '8px',
+                marginRight: '8px'
               }}
             >
               <div style={{ 
@@ -185,41 +189,34 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
                 gap: '12px',
                 flex: 1 
               }}>
+                {/* Checkmark circle */}
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  border: `2px solid ${item.completed ? category.color : 'rgba(255, 255, 255, 0.3)'}`,
+                  backgroundColor: item.completed ? category.color : 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  transition: 'all 0.2s'
+                }}>
+                  {item.completed && (
+                    <span style={{ color: 'white', fontSize: '12px', fontWeight: 'bold' }}>✓</span>
+                  )}
+                </div>
+                
                 <span style={{
                   color: item.completed ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.85)',
                   textDecoration: item.completed ? 'line-through' : 'none',
                   fontSize: '16px',
-                  fontWeight: '400'
+                  fontWeight: '400',
+                  transition: 'all 0.2s'
                 }}>
                   {item.title}
                 </span>
               </div>
-              
-              {/* Add button for individual items */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAddItem(category.id);
-                }}
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  backgroundColor: hoveredItem === item.id ? `${category.color}30` : 'transparent',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <Plus style={{ 
-                  width: '16px', 
-                  height: '16px', 
-                  color: hoveredItem === item.id ? category.color : 'rgba(255, 255, 255, 0.5)' 
-                }} />
-              </button>
             </div>
           ))}
         </div>
@@ -229,7 +226,7 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
 };
 
 export const ModernShoppingList: React.FC = () => {
-  const { filteredTodos, createTodo, setTodos, showToast } = useTodo();
+  const { filteredTodos, createTodo, setTodos, showToast, toggleTodo, deleteCompleted } = useTodo();
   const { t, language, setLanguage } = useLanguage();
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -261,6 +258,7 @@ export const ModernShoppingList: React.FC = () => {
     }
     setExpandedCategories(newExpanded);
   };
+
 
   const handleAddItem = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -359,6 +357,9 @@ export const ModernShoppingList: React.FC = () => {
     loadSavedLists();
   }, []);
 
+  // Beräkna completed count för BottomNavbar
+  const completedCount = filteredTodos.filter(todo => todo.completed).length;
+
   return (
     <div style={{ 
       minHeight: '100vh',
@@ -405,7 +406,7 @@ export const ModernShoppingList: React.FC = () => {
       </div>
 
       {/* Categories List */}
-      <div style={{ padding: '20px 0' }}>
+      <div style={{ padding: '20px 0 100px 0' }}>
         {SHOPPING_CATEGORIES.map(category => {
           const items = getItemsByCategory(category.id);
           
@@ -416,6 +417,7 @@ export const ModernShoppingList: React.FC = () => {
               items={items}
               isExpanded={expandedCategories.has(category.id)}
               onCategoryClick={() => toggleCategory(category.id)}
+              onToggleItem={toggleTodo}
               onAddItem={handleAddItem}
             />
           );
@@ -824,6 +826,13 @@ export const ModernShoppingList: React.FC = () => {
           setSelectedCategory(null);
         }}
         defaultCategory={selectedCategory || undefined}
+      />
+      
+      {/* Bottom Navigation */}
+      <BottomNavbar
+        onAddItem={() => setIsAddModalOpen(true)}
+        onDeleteCompleted={deleteCompleted}
+        completedCount={completedCount}
       />
     </div>
   );

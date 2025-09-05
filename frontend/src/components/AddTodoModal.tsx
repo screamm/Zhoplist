@@ -1,21 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTodo } from '../context/TodoContext';
+import SmartAutocomplete from './SmartAutocomplete';
+import { type Suggestion } from '../utils/smartAutocomplete';
+import { getCategoryForProduct } from '../data/swedishProducts';
 
 interface AddTodoModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const quickSuggestions = [
-  '🥛 Mjölk',
-  '🍞 Bröd', 
-  '🥚 Ägg',
-  '🧈 Smör',
-  '🍌 Bananer',
-  '🥕 Morötter',
-  '🍅 Tomater',
-  '🍗 Kyckling'
-];
 
 export const AddTodoModal: React.FC<AddTodoModalProps> = ({ isOpen, onClose }) => {
   const { createTodo } = useTodo();
@@ -37,33 +30,8 @@ export const AddTodoModal: React.FC<AddTodoModalProps> = ({ isOpen, onClose }) =
     setIsSubmitting(true);
 
     try {
-      // Smart kategorisering baserat på text
-      let category = 'Övrigt';
-      let cleanedText = todoText.trim();
-
-      // Ta bort emoji om det finns i början
-      const emojiMatch = cleanedText.match(/^[\u{1F300}-\u{1F9FF}]\s*/u);
-      if (emojiMatch) {
-        cleanedText = cleanedText.substring(emojiMatch[0].length);
-      }
-
-      // Kategorisering baserat på nyckelord
-      const text = cleanedText.toLowerCase();
-      if (text.includes('mjölk') || text.includes('yoghurt') || text.includes('ost') || text.includes('smör') || text.includes('grädde')) {
-        category = 'Mejeri';
-      } else if (text.includes('kött') || text.includes('kyckling') || text.includes('fläsk') || text.includes('nöt') || text.includes('korv')) {
-        category = 'Kött';
-      } else if (text.includes('fisk') || text.includes('lax') || text.includes('tonfisk') || text.includes('räkor')) {
-        category = 'Mat';
-      } else if (text.includes('banan') || text.includes('äpple') || text.includes('apelsin') || text.includes('vindruvor') || text.includes('frukt')) {
-        category = 'Frukt';
-      } else if (text.includes('morot') || text.includes('tomat') || text.includes('gurka') || text.includes('sallad') || text.includes('lök') || text.includes('potatis')) {
-        category = 'Grönsaker';
-      } else if (text.includes('bröd') || text.includes('ägg') || text.includes('ris') || text.includes('pasta') || text.includes('mjöl')) {
-        category = 'Mat';
-      } else if (text.includes('tvättmedel') || text.includes('disk') || text.includes('toapapper') || text.includes('rengöring')) {
-        category = 'Hushåll';
-      }
+      const cleanedText = todoText.trim();
+      const category = getCategoryForProduct(cleanedText);
 
       await createTodo({
         title: cleanedText,
@@ -80,11 +48,10 @@ export const AddTodoModal: React.FC<AddTodoModalProps> = ({ isOpen, onClose }) =
     }
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    const text = suggestion.split(' ').slice(1).join(' '); // Ta bort emoji
-    setTodoText(text);
-    inputRef.current?.focus();
+  const handleSuggestionSelect = (suggestion: Suggestion) => {
+    setTodoText(suggestion.name);
   };
+
 
   if (!isOpen) return null;
 
@@ -132,11 +99,10 @@ export const AddTodoModal: React.FC<AddTodoModalProps> = ({ isOpen, onClose }) =
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <input
-              ref={inputRef}
-              type="text"
+            <SmartAutocomplete
               value={todoText}
-              onChange={(e) => setTodoText(e.target.value)}
+              onChange={setTodoText}
+              onSelect={handleSuggestionSelect}
               placeholder="Vad ska du handla?"
               className="
                 w-full
@@ -153,39 +119,9 @@ export const AddTodoModal: React.FC<AddTodoModalProps> = ({ isOpen, onClose }) =
                 transition-all duration-200
               "
               disabled={isSubmitting}
+              showCategoryHints={true}
+              maxSuggestions={5}
             />
-          </div>
-
-          {/* Quick Suggestions */}
-          <div>
-            <p className="text-white/70 text-sm mb-3 font-medium">
-              Snabbval:
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {quickSuggestions.map((suggestion, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => handleSuggestionClick(suggestion)}
-                  className="
-                    p-3
-                    bg-white/5
-                    hover:bg-white/15
-                    border border-white/10
-                    hover:border-white/30
-                    rounded-xl
-                    text-white/80 hover:text-white
-                    text-sm
-                    transition-all duration-200
-                    text-left
-                    hover:scale-105
-                    active:scale-95
-                  "
-                >
-                  {suggestion}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Buttons */}
