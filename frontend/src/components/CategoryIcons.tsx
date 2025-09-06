@@ -1,86 +1,136 @@
 import React from 'react';
 
-// Bread/Bakery icon (cupcake/muffin style)
+// Bread icon (bröd)
 export const BreadIcon: React.FC<{ color?: string }> = ({ color = 'white' }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill={color} xmlns="http://www.w3.org/2000/svg">
-    <path d="M14 3C11.79 3 10 4.79 10 7C10 7.73 10.19 8.41 10.5 9H9C7.9 9 7 9.9 7 11C7 11.55 7.22 12.05 7.56 12.41L9 24C9 24.55 9.45 25 10 25H18C18.55 25 19 24.55 19 24L20.44 12.41C20.78 12.05 21 11.55 21 11C21 9.9 20.1 9 19 9H17.5C17.81 8.41 18 7.73 18 7C18 4.79 16.21 3 14 3ZM14 5C15.1 5 16 5.9 16 7C16 8.1 15.1 9 14 9C12.9 9 12 8.1 12 7C12 5.9 12.9 5 14 5Z"/>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 10C8 8.5 9 7 11 7H17C19 7 20 8.5 20 10V18C20 19.5 19 21 17 21H11C9 21 8 19.5 8 18V10Z" fill={color}/>
+    <path d="M8 10C8 9 9 8 10 8H18C19 8 20 9 20 10V11H8V10Z" fill={color}/>
+    <rect x="10" y="13" width="1" height="5" rx="0.5" fill={color} opacity="0.3"/>
+    <rect x="12.5" y="13" width="1" height="5" rx="0.5" fill={color} opacity="0.3"/>
+    <rect x="15" y="13" width="1" height="5" rx="0.5" fill={color} opacity="0.3"/>
+    <rect x="17.5" y="13" width="1" height="5" rx="0.5" fill={color} opacity="0.3"/>
   </svg>
 );
 
-// Fish icon (simple fish shape)
+// Fish icon (fisk)
 export const FishIcon: React.FC<{ color?: string }> = ({ color = 'white' }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill={color} xmlns="http://www.w3.org/2000/svg">
-    <path d="M20.5 14C20.5 10 17 7 12 7C6 7 2 10.58 2 14C2 17.42 6 21 12 21C17 21 20.5 18 20.5 14ZM16 14L26 8V20L16 14ZM6 14C5.45 14 5 13.55 5 13C5 12.45 5.45 12 6 12C6.55 12 7 12.45 7 13C7 13.55 6.55 14 6 14Z"/>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5 14C5 10.5 7.5 8 11 8H17C20 8 22 10.5 22 14C22 17.5 20 20 17 20H11C7.5 20 5 17.5 5 14Z" fill={color}/>
+    <path d="M22 14L25 10V18L22 14Z" fill={color}/>
+    <circle cx="9" cy="12" r="1.5" fill="black" opacity="0.3"/>
+    <path d="M12 14C12 13 12.5 12 13.5 12C14.5 12 15 13 15 14" stroke="black" strokeWidth="0.5" opacity="0.2" fill="none"/>
   </svg>
 );
 
-// Meat icon (drumstick/ham shape)
+// Meat icon (biff/kött)
 export const MeatIcon: React.FC<{ color?: string }> = ({ color = 'white' }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill={color} xmlns="http://www.w3.org/2000/svg">
-    <path d="M18.75 8C18.75 4.69 16.31 2 13.25 2C10.19 2 7.75 4.69 7.75 8C7.75 9.59 8.41 11.01 9.44 12.01L4 24H8L10 20H16L18 24H22L16.56 12.01C17.59 11.01 18.25 9.59 18.25 8ZM13.25 10C11.59 10 10.25 8.66 10.25 7C10.25 5.34 11.59 4 13.25 4C14.91 4 16.25 5.34 16.25 7C16.25 8.66 14.91 10 13.25 10Z"/>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 13C6 10 8 7 12 6C15 5 19 7 21 10C22 12 22 15 20 17C18 20 15 22 12 22C8 22 6 19 6 16V13Z" fill={color}/>
+    <path d="M7 16C8 19 10 21 13 21C16 21 18 19 20 17" stroke="black" strokeWidth="0.5" opacity="0.2" fill="none"/>
+    <path d="M10 11C12 10 15 10 18 12" stroke="black" strokeWidth="0.8" opacity="0.2" fill="none"/>
+    <path d="M9 14C11 13 14 13 17 15" stroke="black" strokeWidth="0.8" opacity="0.2" fill="none"/>
+    <circle cx="18" cy="10" r="2" fill={color} opacity="0.9"/>
   </svg>
 );
 
-// Dairy/Milk icon (milk bottle)
+// Dairy icon (mjölkpaket)
 export const DairyIcon: React.FC<{ color?: string }> = ({ color = 'white' }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill={color} xmlns="http://www.w3.org/2000/svg">
-    <path d="M18 2H10V5L8 10V24C8 25.1 8.9 26 10 26H18C19.1 26 20 25.1 20 24V10L18 5V2ZM18 10V24H10V10H18ZM10 4H18V5L19 8H9L10 5V4Z"/>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9 8L11 4H17L19 8V21C19 22 18 23 17 23H11C10 23 9 22 9 21V8Z" fill={color}/>
+    <path d="M11 4L14 2L17 4H11Z" fill={color}/>
+    <rect x="9" y="7" width="10" height="2" fill={color}/>
+    <rect x="11" y="11" width="6" height="8" rx="1" fill="black" opacity="0.2"/>
   </svg>
 );
 
-// Fruits icon (water drop shape)
+// Fruits icon (äpple)
 export const FruitsIcon: React.FC<{ color?: string }> = ({ color = 'white' }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill={color} xmlns="http://www.w3.org/2000/svg">
-    <path d="M14 2C14 2 6 10.46 6 17C6 21.42 9.58 25 14 25C18.42 25 22 21.42 22 17C22 10.46 14 2 14 2ZM14 22C11.24 22 9 19.76 9 17C9 14.89 10.19 11.86 12.03 8.99C12.63 8.03 13.27 7.11 14 6.11C14.73 7.11 15.37 8.03 15.97 8.99C17.81 11.86 19 14.89 19 17C19 19.76 16.76 22 14 22Z"/>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 8C17 8 19 10 19 13V17C19 20 17 22 14 22C11 22 9 20 9 17V13C9 10 11 8 14 8Z" fill={color}/>
+    <rect x="13" y="4" width="2" height="4" rx="1" fill={color}/>
+    <path d="M16 5C17 4.5 18 5 17.5 6C16.5 6 16 5.5 16 5Z" fill={color}/>
   </svg>
 );
 
-// Vegetable icon (checkmark in circle)
+// Vegetable icon (morot)
 export const VegetableIcon: React.FC<{ color?: string }> = ({ color = 'white' }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill={color} xmlns="http://www.w3.org/2000/svg">
-    <path d="M14 2C7.38 2 2 7.38 2 14C2 20.62 7.38 26 14 26C20.62 26 26 20.62 26 14C26 7.38 20.62 2 14 2ZM11 19L6 14L7.41 12.59L11 16.17L20.59 6.58L22 8L11 19Z"/>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 10L12 22C12 23 13 24 14 24C15 24 16 23 16 22L14 10Z" fill={color}/>
+    <path d="M12 5L14 10L16 5" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none"/>
+    <path d="M10 4L13 8" stroke={color} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+    <path d="M18 4L15 8" stroke={color} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
   </svg>
 );
 
-// Pantry icon (can/jar shape)
+// Pantry icon (konserver)
 export const PantryIcon: React.FC<{ color?: string }> = ({ color = 'white' }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill={color} xmlns="http://www.w3.org/2000/svg">
-    <path d="M8 6C8 4.9 8.9 4 10 4H18C19.1 4 20 4.9 20 6V8H22C23.1 8 24 8.9 24 10V22C24 23.1 23.1 24 22 24H6C4.9 24 4 23.1 4 22V10C4 8.9 4.9 8 6 8H8V6ZM10 6V8H18V6H10ZM6 10V22H22V10H6ZM8 12H20V14H8V12ZM8 16H16V18H8V16Z"/>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="9" width="5" height="14" rx="1" fill={color}/>
+    <rect x="15" y="7" width="5" height="16" rx="1" fill={color}/>
+    <ellipse cx="10.5" cy="9" rx="2.5" ry="1" fill={color}/>
+    <ellipse cx="17.5" cy="7" rx="2.5" ry="1" fill={color}/>
+    <rect x="8.5" y="13" width="4" height="6" rx="0.5" fill="black" opacity="0.2"/>
+    <rect x="15.5" y="11" width="4" height="7" rx="0.5" fill="black" opacity="0.2"/>
   </svg>
 );
 
-// Frozen icon (snowflake shape)
+// Frozen icon (snöflinga)
 export const FrozenIcon: React.FC<{ color?: string }> = ({ color = 'white' }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill={color} xmlns="http://www.w3.org/2000/svg">
-    <path d="M14 2L16 4L14 6L12 4L14 2ZM22 12L24 14L22 16L20 14L22 12ZM6 12L8 14L6 16L4 14L6 12ZM14 22L16 24L14 26L12 24L14 22ZM19.07 6.93L20.48 8.34L19.07 9.75L17.66 8.34L19.07 6.93ZM8.93 18.25L10.34 19.66L8.93 21.07L7.52 19.66L8.93 18.25ZM19.07 21.07L20.48 19.66L19.07 18.25L17.66 19.66L19.07 21.07ZM8.93 9.75L10.34 8.34L8.93 6.93L7.52 8.34L8.93 9.75ZM14 8V20H14V8ZM8 14H20V14H8Z"/>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 5V23" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <path d="M5 14H23" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <path d="M8 8L20 20" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <path d="M20 8L8 20" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <path d="M14 5L11 8H17L14 5Z" fill={color}/>
+    <path d="M14 23L11 20H17L14 23Z" fill={color}/>
+    <path d="M5 14L8 11V17L5 14Z" fill={color}/>
+    <path d="M23 14L20 11V17L23 14Z" fill={color}/>
   </svg>
 );
 
-// Drinks icon (glass/cup shape)
+// Drinks icon (glas)
 export const DrinksIcon: React.FC<{ color?: string }> = ({ color = 'white' }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill={color} xmlns="http://www.w3.org/2000/svg">
-    <path d="M7 2V4H8V20C8 21.1 8.9 22 10 22H18C19.1 22 20 21.1 20 20V4H21V2H7ZM10 4H18V20H10V4ZM11 6V18H13V6H11ZM15 6V18H17V6H15Z"/>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 5H18L17 20C17 21 16 22 15 22H13C12 22 11 21 11 20L10 5Z" fill={color}/>
+    <rect x="10" y="5" width="8" height="2" rx="1" fill={color}/>
+    <path d="M11.5 12H16.5V18C16.5 19 15.5 20 14 20C12.5 20 11.5 19 11.5 18V12Z" fill="black" opacity="0.2"/>
+    <circle cx="13" cy="10" r="1" fill="black" opacity="0.15"/>
+    <circle cx="15.5" cy="11" r="0.7" fill="black" opacity="0.15"/>
   </svg>
 );
 
-// Snacks icon (popcorn/chips shape)
+// Snacks icon (chipspåse)
 export const SnacksIcon: React.FC<{ color?: string }> = ({ color = 'white' }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill={color} xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2C10.34 2 9 3.34 9 5C9 5.35 9.06 5.69 9.17 6H7C5.9 6 5 6.9 5 8V10C5 11.1 5.9 12 7 12H8V20C8 22.21 9.79 24 12 24H16C18.21 24 20 22.21 20 20V12H21C22.1 12 23 11.1 23 10V8C23 6.9 22.1 6 21 6H18.83C18.94 5.69 19 5.35 19 5C19 3.34 17.66 2 16 2C15.2 2 14.5 2.37 14 2.97C13.5 2.37 12.8 2 12 2ZM12 4C12.55 4 13 4.45 13 5S12.55 6 12 6S11 5.55 11 5S11.45 4 12 4ZM16 4C16.55 4 17 4.45 17 5S16.55 6 16 6S15 5.55 15 5S15.45 4 16 4ZM7 8H21V10H7V8ZM10 12H18V20C18 21.1 17.1 22 16 22H12C10.9 22 10 21.1 10 20V12Z"/>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9 5L8 9V22C8 23 9 24 10 24H18C19 24 20 23 20 22V9L19 5H9Z" fill={color}/>
+    <path d="M8 9H20L19 6C19 5 18 4 17 4H11C10 4 9 5 9 6L8 9Z" fill={color}/>
+    <circle cx="11" cy="13" r="2" fill="black" opacity="0.15"/>
+    <circle cx="16" cy="15" r="1.8" fill="black" opacity="0.15"/>
+    <circle cx="13" cy="18" r="1.5" fill="black" opacity="0.15"/>
+    <circle cx="17" cy="20" r="1.3" fill="black" opacity="0.15"/>
   </svg>
 );
 
-// Household icon (cleaning supplies shape)
+// Household icon (rengöring)
 export const HouseholdIcon: React.FC<{ color?: string }> = ({ color = 'white' }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill={color} xmlns="http://www.w3.org/2000/svg">
-    <path d="M10 2C8.9 2 8 2.9 8 4V6H6C4.9 6 4 6.9 4 8V24C4 25.1 4.9 26 6 26H10C11.1 26 12 25.1 12 24V22H16V24C16 25.1 16.9 26 18 26H22C23.1 26 24 25.1 24 24V8C24 6.9 23.1 6 22 6H20V4C20 2.9 19.1 2 18 2H10ZM10 4H18V6H10V4ZM6 8H22V24H18V20H10V24H6V8ZM8 10V12H20V10H8ZM8 14V16H12V14H8ZM16 14V16H20V14H16Z"/>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="8" width="8" height="15" rx="2" fill={color}/>
+    <rect x="12" y="4" width="4" height="5" rx="2" fill={color}/>
+    <rect x="11" y="12" width="6" height="8" rx="1" fill="black" opacity="0.2"/>
+    <circle cx="14" cy="5" r="1" fill={color}/>
+    <path d="M13 8H15V4" stroke={color} strokeWidth="2" strokeLinecap="round"/>
   </svg>
 );
 
-// Personal care icon (bottle/cosmetic shape)
+// Personal care icon (kosmetika)
 export const PersonalIcon: React.FC<{ color?: string }> = ({ color = 'white' }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill={color} xmlns="http://www.w3.org/2000/svg">
-    <path d="M11 2V4H9V6H11V8H8C6.9 8 6 8.9 6 10V24C6 25.1 6.9 26 8 26H20C21.1 26 22 25.1 22 24V10C22 8.9 21.1 8 20 8H17V6H19V4H17V2H11ZM13 4H15V6H13V4ZM8 10H20V24H8V10ZM10 12V14H18V12H10ZM10 16V18H14V16H10Z"/>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="10" width="5" height="13" rx="2.5" fill={color}/>
+    <rect x="15" y="8" width="5" height="15" rx="2.5" fill={color}/>
+    <rect x="9.5" y="6" width="2" height="5" rx="1" fill={color}/>
+    <rect x="16.5" y="4" width="2" height="5" rx="1" fill={color}/>
+    <rect x="8.5" y="14" width="4" height="6" rx="0.5" fill="black" opacity="0.2"/>
+    <rect x="15.5" y="12" width="4" height="7" rx="0.5" fill="black" opacity="0.2"/>
   </svg>
 );
 

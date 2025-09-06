@@ -247,7 +247,7 @@ export const ResponsiveCategoryView: React.FC = () => {
   const completedItems = filteredTodos.filter(todo => todo.completed).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 relative">
+    <div className="h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 relative flex flex-col overflow-hidden">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-black/20 backdrop-blur-xl border-b border-white/10">
         <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
@@ -323,7 +323,7 @@ export const ResponsiveCategoryView: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="px-4 sm:px-6 lg:px-8 py-6 pb-32">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
         {/* Empty state */}
         {filteredTodos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">

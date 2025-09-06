@@ -15,7 +15,6 @@ interface CategoryRowProps {
   onCategoryClick: () => void;
   isExpanded: boolean;
   onToggleItem: (itemId: string) => void;
-  onAddItem: (categoryId: string) => void;
 }
 
 const CategoryRow: React.FC<CategoryRowProps> = ({ 
@@ -23,8 +22,7 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
   items, 
   onCategoryClick, 
   isExpanded,
-  onToggleItem,
-  onAddItem
+  onToggleItem
 }) => {
   const { t } = useLanguage();
   
@@ -112,46 +110,14 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
           }}>{t[category.nameKey as keyof typeof t]}</h3>
         </div>
-        
-        {/* Add Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onAddItem(category.id);
-          }}
-          style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.08)',
-            border: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            flexShrink: 0,
-            zIndex: 3
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-            e.currentTarget.style.transform = 'scale(1.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-            e.currentTarget.style.transform = 'scale(1)';
-          }}
-        >
-          <Plus style={{ width: '18px', height: '18px', color: 'rgba(255, 255, 255, 0.8)' }} />
-        </button>
       </div>
 
       {/* Expanded Items with Animation */}
       <div 
         style={{
-          maxHeight: isExpanded ? `${items.length * 45 + 20}px` : '0px',
+          maxHeight: isExpanded ? `${items.length * 55 + 40}px` : '0px',
           overflow: 'hidden',
-          transition: 'max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
           position: 'relative',
           zIndex: 2
         }}
@@ -362,7 +328,10 @@ export const ModernShoppingList: React.FC = () => {
 
   return (
     <div style={{ 
-      minHeight: '100vh',
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
       background: 'linear-gradient(180deg, #001122 0%, #1e3a8a 100%)',
       fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif'
     }}>
@@ -406,7 +375,13 @@ export const ModernShoppingList: React.FC = () => {
       </div>
 
       {/* Categories List */}
-      <div style={{ padding: '20px 0 100px 0' }}>
+      <div style={{ 
+        flex: 1,
+        overflowY: 'auto',
+        padding: '20px 0',
+        paddingBottom: '140px',
+        WebkitOverflowScrolling: 'touch'
+      }}>
         {SHOPPING_CATEGORIES.map(category => {
           const items = getItemsByCategory(category.id);
           
@@ -418,7 +393,6 @@ export const ModernShoppingList: React.FC = () => {
               isExpanded={expandedCategories.has(category.id)}
               onCategoryClick={() => toggleCategory(category.id)}
               onToggleItem={toggleTodo}
-              onAddItem={handleAddItem}
             />
           );
         })}

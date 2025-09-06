@@ -2,7 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTodo } from '../context/TodoContext';
 import { useLanguage } from '../context/LanguageContext';
 import { SHOPPING_CATEGORIES, getCategoryById } from '../types/categories';
-import { X, Plus, ShoppingBag } from 'lucide-react';
+import { X, Plus, ShoppingBag, Minus } from 'lucide-react';
+import SmartAutocomplete from './SmartAutocomplete';
+import { type Suggestion } from '../utils/smartAutocomplete';
+import { getCategoryIcon } from './CategoryIcons';
 
 interface AddItemModalProps {
   isOpen: boolean;
@@ -14,15 +17,41 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
   const { createTodo } = useTodo();
   const { t } = useLanguage();
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [quantity, setQuantity] = useState(1);
   const [category, setCategory] = useState(defaultCategory || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (defaultCategory) {
       setCategory(defaultCategory);
+    } else if (!isOpen) {
+      // Återställ kategori när modal stängs
+      setCategory('');
     }
-  }, [defaultCategory]);
+  }, [defaultCategory, isOpen]);
+
+  const handleSuggestionSelect = (suggestion: Suggestion) => {
+    setTitle(suggestion.name);
+    // Automatically set category based on suggestion if available
+    if (suggestion.category) {
+      // Map swedish category to app category
+      const categoryMapping: { [key: string]: string } = {
+        'mejeri': 'dairy',
+        'frukt-gront': 'vegetables',
+        'kott-fisk': 'meat',
+        'skafferi': 'pantry',
+        'brod': 'bread',
+        'frys': 'frozen',
+        'dryck': 'drinks',
+        'godis-snacks': 'snacks',
+        'hygien': 'personal',
+        'stad': 'household',
+        'husdjur': 'personal',
+        'ovrigt': 'pantry'
+      };
+      setCategory(categoryMapping[suggestion.category] || suggestion.category);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,14 +59,49 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
 
     setIsSubmitting(true);
     try {
+      // Lägg till antalet i titeln om det är mer än 1
+      const itemTitle = quantity > 1 ? `${title.trim()} (${quantity}st)` : title.trim();
+      
+      // Om ingen kategori är satt, använd defaultCategory eller försök hitta rätt kategori
+      let finalCategory = category || defaultCategory || '';
+      
+      // Om vi fortfarande inte har kategori, försök hitta från produktdatabasen
+      if (!finalCategory) {
+        // Importera produktdatabasen för att kunna söka
+        const { PRODUCT_DATABASE } = await import('../data/swedishProducts');
+        const product = PRODUCT_DATABASE.find(p => 
+          p.name.toLowerCase() === title.trim().toLowerCase() ||
+          p.aliases?.some(alias => alias.toLowerCase() === title.trim().toLowerCase())
+        );
+        
+        if (product) {
+          const categoryMapping: { [key: string]: string } = {
+            'mejeri': 'dairy',
+            'frukt-gront': 'vegetables',
+            'kott-fisk': 'meat',
+            'skafferi': 'pantry',
+            'brod': 'bread',
+            'frys': 'frozen',
+            'dryck': 'drinks',
+            'godis-snacks': 'snacks',
+            'hygien': 'personal',
+            'stad': 'household',
+            'husdjur': 'personal',
+            'ovrigt': 'pantry'
+          };
+          finalCategory = categoryMapping[product.category] || product.category;
+        }
+      }
+      
       await createTodo({
-        title: title.trim(),
-        description: description.trim(),
-        category,
+        title: itemTitle,
+        description: '',
+        category: finalCategory,
         priority: 0
       });
       setTitle('');
-      setDescription('');
+      setQuantity(1);
+      setCategory('');
       onClose();
     } catch (error) {
       console.error('Failed to create item:', error);
@@ -72,10 +136,10 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
             <div className="flex items-center space-x-3">
               {selectedCategoryData ? (
                 <div 
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
                   style={{ backgroundColor: selectedCategoryData.color + '30' }}
                 >
-                  {selectedCategoryData.icon}
+                  {getCategoryIcon(selectedCategoryData.id, selectedCategoryData.color)}
                 </div>
               ) : (
                 <div className="w-10 h-10 bg-gray-700 rounded-xl flex items-center justify-center">
@@ -103,48 +167,50 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
             <label className="block text-sm font-medium text-gray-300">
               {t.itemName} *
             </label>
-            <input
-              ref={inputRef}
-              type="text"
+            <SmartAutocomplete
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={setTitle}
+              onSelect={handleSuggestionSelect}
               placeholder={t.itemName}
               className="w-full px-4 py-4 bg-gray-800/50 border border-gray-600 rounded-2xl text-white placeholder-gray-500 focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all text-base touch-target"
-              required
+              showCategoryHints={true}
+              maxSuggestions={5}
             />
           </div>
 
-          {!defaultCategory && (
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-300">
-                {t.category}
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-4 bg-gray-800/50 border border-gray-600 rounded-2xl text-white focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all text-base touch-target"
-              >
-                <option value="">{t.selectCategory}...</option>
-                {SHOPPING_CATEGORIES.map(cat => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.icon} {t[cat.nameKey as keyof typeof t]}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">
-              {t.description} <span className="text-gray-500">({t.optional})</span>
+              Antal
             </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t.description}
-              className="w-full px-4 py-4 bg-gray-800/50 border border-gray-600 rounded-2xl text-white placeholder-gray-500 focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all text-base touch-target"
-            />
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="w-12 h-12 bg-gray-800/50 border border-gray-600 rounded-xl flex items-center justify-center hover:bg-gray-700 transition-all touch-target"
+              >
+                <Minus className="w-5 h-5 text-white" />
+              </button>
+              
+              <input
+                type="number"
+                value={quantity}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 1;
+                  setQuantity(Math.max(1, Math.min(99, val)));
+                }}
+                className="w-20 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white text-center text-lg font-semibold focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all"
+                min="1"
+                max="99"
+              />
+              
+              <button
+                type="button"
+                onClick={() => setQuantity(Math.min(99, quantity + 1))}
+                className="w-12 h-12 bg-gray-800/50 border border-gray-600 rounded-xl flex items-center justify-center hover:bg-gray-700 transition-all touch-target"
+              >
+                <Plus className="w-5 h-5 text-white" />
+              </button>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4 sm:pt-6">

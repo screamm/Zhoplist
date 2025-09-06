@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { smartAutocomplete, type Suggestion } from '../utils/smartAutocomplete';
 import { DEFAULT_CATEGORIES } from '../data/swedishProducts';
+import { getCategoryIcon as getCategoryIconSVG } from './CategoryIcons';
+import { SHOPPING_CATEGORIES } from '../types/categories';
 
 interface SmartAutocompleteProps {
   value: string;
@@ -124,21 +126,41 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
     // Lär autocomplete från valet
     smartAutocomplete.learn(suggestion.name);
     
+    // Uppdatera värdet till det valda förslaget
+    onChange(suggestion.name);
+    
     // Meddela parent component
     onSelect(suggestion);
     
     // Stäng dropdown
     setIsOpen(false);
     setSelectedIndex(-1);
-    
-    // Rensa input för nästa val
-    onChange('');
+  };
+
+  // Mappa svenska kategori-id till app-kategori-id
+  const categoryMapping: { [key: string]: string } = {
+    'mejeri': 'dairy',
+    'frukt-gront': 'vegetables', // Frukt & grönt maps to vegetables (or could split)
+    'kott-fisk': 'meat', // Kött & fisk maps to meat
+    'skafferi': 'pantry',
+    'brod': 'bread',
+    'frys': 'frozen',
+    'dryck': 'drinks',
+    'godis-snacks': 'snacks',
+    'hygien': 'personal',
+    'stad': 'household',
+    'husdjur': 'personal',
+    'ovrigt': 'pantry'
   };
 
   // Få kategori-ikon
-  const getCategoryIcon = (categoryId: string): string => {
-    const category = DEFAULT_CATEGORIES.find(c => c.id === categoryId);
-    return category?.icon || '📦';
+  const getCategoryIcon = (categoryId: string): React.ReactNode => {
+    const mappedId = categoryMapping[categoryId] || categoryId;
+    const appCategory = SHOPPING_CATEGORIES.find(c => c.id === mappedId);
+    
+    if (!appCategory) return null;
+    
+    return getCategoryIconSVG(mappedId, appCategory.color);
   };
 
   // Highlight matched text
@@ -182,13 +204,20 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
         tabIndex={-1}
       >
         <div className="flex items-center space-x-3 flex-1 min-w-0">
-          {showCategoryHints && (
-            <span 
-              className="text-lg flex-shrink-0"
+          {showCategoryHints && suggestion.category && (
+            <div 
+              className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ 
+                backgroundColor: (() => {
+                  const mappedId = categoryMapping[suggestion.category] || suggestion.category;
+                  const appCategory = SHOPPING_CATEGORIES.find(c => c.id === mappedId);
+                  return appCategory ? appCategory.color + '30' : '#64748B30';
+                })()
+              }}
               title={DEFAULT_CATEGORIES.find(c => c.id === suggestion.category)?.name}
             >
               {getCategoryIcon(suggestion.category)}
-            </span>
+            </div>
           )}
           
           <div className="flex-1 min-w-0">
@@ -205,22 +234,6 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 flex-shrink-0">
-          {/* Reason indicator */}
-          {suggestion.reason === 'history' && (
-            <span className="w-2 h-2 bg-blue-400 rounded-full" title="Från din historik" />
-          )}
-          {suggestion.reason === 'popularity' && (
-            <span className="w-2 h-2 bg-orange-400 rounded-full" title="Populär produkt" />
-          )}
-          
-          {/* Score indicator (endast i dev mode) */}
-          {process.env.NODE_ENV === 'development' && (
-            <span className="text-xs text-white/40 font-mono">
-              {Math.round(suggestion.score * 100)}%
-            </span>
-          )}
-        </div>
       </div>
     ))
   ), [suggestions, selectedIndex, value, showCategoryHints]);
@@ -239,12 +252,11 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
         }}
         placeholder={placeholder}
         disabled={disabled}
-        className={`
+        className={className || `
           w-full px-4 py-3 text-base border border-gray-300 rounded-lg
           focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none
           transition-colors duration-200
           ${disabled ? 'bg-gray-100 text-gray-500' : 'bg-white text-gray-900'}
-          ${className}
         `}
         role="combobox"
         aria-expanded={isOpen}
