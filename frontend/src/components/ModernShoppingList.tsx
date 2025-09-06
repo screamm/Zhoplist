@@ -205,6 +205,9 @@ export const ModernShoppingList: React.FC = () => {
   const [savedLists, setSavedLists] = useState<Array<{id: string, name: string, date: string, todos: Todo[]}>>([]);
   const [currentListName, setCurrentListName] = useState('');
   
+  // Debug logging
+  console.log('🔴 ModernShoppingList rendering - NY KATEGORI knapp ska synas!');
+  
   // Load saved lists on component mount
   const loadSavedLists = () => {
     const saved = localStorage.getItem('savedShoppingLists');
@@ -396,6 +399,61 @@ export const ModernShoppingList: React.FC = () => {
             />
           );
         })}
+        
+        {/* Add Category Button */}
+        <div 
+          onClick={() => {
+            alert('Funktion för att lägga till ny kategori kommer snart!');
+          }}
+          style={{ 
+            marginBottom: '2px',
+            padding: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            borderLeft: '4px solid #6b7280',
+            borderRight: '4px solid transparent',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            background: 'linear-gradient(90deg, rgba(107, 114, 128, 0.1) 0%, transparent 100%)',
+            border: '2px dashed rgba(107, 114, 128, 0.5)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ 
+              width: '52px',
+              height: '52px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(107, 114, 128, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px',
+              border: '2px dashed rgba(107, 114, 128, 0.5)'
+            }}>
+              ➕
+            </div>
+            <div>
+              <h3 style={{ 
+                fontSize: '17px',
+                fontWeight: '600',
+                color: '#ffffff',
+                margin: 0,
+                letterSpacing: '-0.01em'
+              }}>
+                Lägg till kategori
+              </h3>
+              <p style={{ 
+                fontSize: '14px',
+                color: 'rgba(255, 255, 255, 0.5)',
+                margin: 0,
+                marginTop: '2px'
+              }}>
+                Skapa ny kategori
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Hamburger Menu */}

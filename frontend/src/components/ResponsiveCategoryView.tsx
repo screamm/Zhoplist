@@ -163,6 +163,9 @@ export const ResponsiveCategoryView: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Debug logging
+  console.log('🔴 ResponsiveCategoryView rendering - NY KATEGORI knapp ska synas!');
 
   // Auto-expand categories with items on mobile
   useEffect(() => {
@@ -248,6 +251,18 @@ export const ResponsiveCategoryView: React.FC = () => {
 
   return (
     <div className="h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 relative flex flex-col overflow-hidden">
+      {/* Debug Button - Always at top */}
+      <button
+        onClick={() => {
+          console.log('🔴 NY KATEGORI knapp klickad!');
+          alert('Lägg till kategori fungerar!');
+        }}
+        className="fixed top-4 right-4 z-[100] px-4 py-2 bg-red-600 text-white rounded-lg font-bold shadow-2xl"
+        style={{ zIndex: 9999 }}
+      >
+        NY KATEGORI TEST
+      </button>
+      
       {/* Header */}
       <div className="sticky top-0 z-40 bg-black/20 backdrop-blur-xl border-b border-white/10">
         <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
@@ -323,7 +338,7 @@ export const ResponsiveCategoryView: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 pb-32">
         {/* Empty state */}
         {filteredTodos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
@@ -396,6 +411,18 @@ export const ResponsiveCategoryView: React.FC = () => {
                       <Plus className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                     </button>
                   ))}
+                  
+                  {/* Add new category button */}
+                  <button
+                    onClick={() => {
+                      // TODO: Implement add new category modal
+                      alert('Funktion för att lägga till ny kategori kommer snart!');
+                    }}
+                    className="p-3 sm:p-4 rounded-xl flex flex-col items-center space-y-2 transition-all hover:shadow-lg transform hover:scale-105 active:scale-95 border-2 border-dashed border-gray-600 hover:border-purple-400 bg-gray-800/20 hover:bg-purple-900/20"
+                  >
+                    <Plus className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+                    <span className="text-gray-400 text-xs sm:text-sm font-medium text-center leading-tight">Ny kategori</span>
+                  </button>
                 </div>
               </div>
             )}
@@ -438,16 +465,31 @@ export const ResponsiveCategoryView: React.FC = () => {
         )}
       </div>
 
-      {/* Floating Action Button - Mobile only */}
-      <button
-        onClick={() => {
-          setSelectedCategory(null);
-          setIsAddModalOpen(true);
-        }}
-        className="lg:hidden fixed bottom-20 right-4 w-14 h-14 bg-gradient-to-r from-purple-600 to-purple-500 rounded-full shadow-lg shadow-purple-600/30 flex items-center justify-center z-30 transition-all transform hover:scale-110 active:scale-95"
-      >
-        <Plus className="w-6 h-6 text-white" />
-      </button>
+      {/* Floating Action Buttons - Always visible */}
+      <div className="fixed bottom-20 right-4 flex flex-col gap-3 z-50">
+        {/* Add Category Button */}
+        <button
+          onClick={() => {
+            alert('Funktion för att lägga till ny kategori kommer snart!');
+          }}
+          className="w-14 h-14 bg-gradient-to-r from-yellow-600 to-yellow-500 rounded-full shadow-lg shadow-yellow-600/30 flex items-center justify-center transition-all transform hover:scale-110 active:scale-95"
+          title="Lägg till kategori"
+        >
+          <Grid3X3 className="w-6 h-6 text-white" />
+        </button>
+        
+        {/* Add Item Button */}
+        <button
+          onClick={() => {
+            setSelectedCategory(null);
+            setIsAddModalOpen(true);
+          }}
+          className="w-14 h-14 bg-gradient-to-r from-purple-600 to-purple-500 rounded-full shadow-lg shadow-purple-600/30 flex items-center justify-center transition-all transform hover:scale-110 active:scale-95"
+          title="Lägg till vara"
+        >
+          <Plus className="w-6 h-6 text-white" />
+        </button>
+      </div>
 
       {/* Add Item Modal */}
       <AddItemModal 
