@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTodo } from '../context/TodoContext.js';
 import { useLanguage } from '../context/LanguageContext.js';
 import { SHOPPING_CATEGORIES, type Category } from '../types/categories.js';
-import { Plus, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import type { Todo } from '../types/index.js';
 import { AddItemModal } from './AddItemModal.js';
 import { generateShoppingMockData } from '../utils/shoppingMockData.js';
