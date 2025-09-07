@@ -170,6 +170,7 @@ const todoReducer = (state: TodoState, action: TodoAction): TodoState => {
 // Context interface
 interface TodoContextType {
   state: TodoState;
+  dispatch: React.Dispatch<TodoAction>;
   // Todo actions
   loadTodos: () => Promise<void>;
   createTodo: (todoData: TodoFormData) => Promise<void>;
@@ -514,6 +515,7 @@ export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const contextValue: TodoContextType = {
     state,
+    dispatch,
     loadTodos,
     createTodo,
     updateTodo,

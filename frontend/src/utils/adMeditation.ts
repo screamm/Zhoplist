@@ -149,20 +149,20 @@ export class AdMediation {
     }
   }
   
-  private async loadAdMobAd(type: string): Promise<boolean> {
+  private async loadAdMobAd(_type: string): Promise<boolean> {
     // AdMob implementation (redan implementerat)
-    const { AdMob } = await import('@capacitor-community/admob');
+    // const { AdMob } = await import('@capacitor-community/admob');
     // ... existing AdMob code
     return true;
   }
   
-  private async loadFacebookAd(type: string): Promise<boolean> {
+  private async loadFacebookAd(_type: string): Promise<boolean> {
     // Facebook Audience Network implementation
     // Kräver @react-native-async-storage/async-storage
     return Math.random() > 0.2; // 80% success rate
   }
   
-  private async loadAdnamiAd(type: string): Promise<boolean> {
+  private async loadAdnamiAd(_type: string): Promise<boolean> {
     // Adnami integration för nordiska marknaden
     // Högre CPM men lägre fill rate
     return Math.random() > 0.6; // 40% success rate

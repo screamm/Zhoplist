@@ -229,10 +229,6 @@ export const ModernShoppingList: React.FC = () => {
   };
 
 
-  const handleAddItem = (categoryId: string) => {
-    setSelectedCategory(categoryId);
-    setIsAddModalOpen(true);
-  };
 
   const getItemsByCategory = (categoryId: string) => {
     return filteredTodos.filter(todo => todo.category === categoryId);

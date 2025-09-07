@@ -36,10 +36,10 @@ function AppContent() {
     if (shortcutAction) {
       if (shortcutAction.action === 'new-list') {
         // Öppna ny lista modal
-        dispatch({ type: 'SHOW_ADD_MODAL' });
+        dispatch({ type: 'SET_ADD_MODAL_OPEN', payload: true });
       } else if (shortcutAction.action === 'recent') {
-        // Ladda senaste listan
-        dispatch({ type: 'LOAD_RECENT_LIST' });
+        // Ladda senaste listan - för nu bara öppna add modal
+        dispatch({ type: 'SET_ADD_MODAL_OPEN', payload: true });
       }
     }
     
@@ -50,7 +50,17 @@ function AppContent() {
         sharedData.items.forEach(item => {
           dispatch({ 
             type: 'ADD_TODO', 
-            payload: { text: item }
+            payload: { 
+              id: `shared-${Date.now()}-${Math.random()}`,
+              title: item,
+              completed: false,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              category: 'pantry',
+              priority: 1,
+              tags: [],
+              userSession: 'shared'
+            }
           });
         });
       }

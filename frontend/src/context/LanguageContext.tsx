@@ -54,6 +54,7 @@ interface Translations {
   savedLists: string;
   noSavedLists: string;
   maxListsReached: string;
+  save: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -109,6 +110,7 @@ const translations: Record<Language, Translations> = {
     savedLists: 'Sparade listor',
     noSavedLists: 'Inga sparade listor',
     maxListsReached: 'Max 5 listor kan sparas',
+    save: 'Spara',
   },
   en: {
     // Header
@@ -162,6 +164,7 @@ const translations: Record<Language, Translations> = {
     savedLists: 'Saved Lists',
     noSavedLists: 'No saved lists',
     maxListsReached: 'Max 5 lists can be saved',
+    save: 'Save',
   },
 };
 

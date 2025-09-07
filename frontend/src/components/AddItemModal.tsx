@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTodo } from '../context/TodoContext';
 import { useLanguage } from '../context/LanguageContext';
-import { SHOPPING_CATEGORIES, getCategoryById } from '../types/categories';
+import { getCategoryById } from '../types/categories';
 import { X, Plus, ShoppingBag, Minus } from 'lucide-react';
 import SmartAutocomplete from './SmartAutocomplete';
 import { type Suggestion } from '../utils/smartAutocomplete';

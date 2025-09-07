@@ -1,6 +1,6 @@
 // Ad Manager för Zhoplist - AdMob och Play Billing integration
 
-import { isPremiumUser, setPremiumUser } from './pwa';
+import { isPremiumUser } from './pwa';
 
 // AdMob konfiguration
 const AD_CONFIG = {
