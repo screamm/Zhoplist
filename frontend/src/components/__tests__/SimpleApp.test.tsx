@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SimpleApp } from '../SimpleApp';
+import { SimpleApp } from '../_unused/SimpleApp';
 
 // Mock the TodoContext
 vi.mock('../../context/TodoContext', async () => {

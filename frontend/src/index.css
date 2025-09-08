@@ -27,6 +27,12 @@
     perspective: 1000px;
   }
 
+  /* Prevent width adjustment flash by ensuring #root is mobile-first */
+  #root {
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
   * {
     @apply border-white/10;
   }
@@ -131,6 +137,23 @@
     @apply bg-surface/90 backdrop-blur-lg border-t border-white/10;
     @apply py-2 px-4;
     @apply safe-area-inset-bottom;
+    /* Prevent layout shifts */
+    contain: layout style;
+  }
+
+  /* Icon loading optimization */
+  .lucide {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    min-width: 1em;
+    min-height: 1em;
+    vertical-align: middle;
+    /* Prevent icon loading layout shifts */
+    contain: size layout;
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 
   /* Todo item styles */

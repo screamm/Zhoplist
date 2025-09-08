@@ -327,7 +327,9 @@ export const ModernShoppingList: React.FC = () => {
 
   return (
     <div style={{ 
-      height: '100vh',
+      height: '100dvh', // Dynamic viewport height - prevents mobile browser bar issues
+      width: '100%', // Explicit full width for mobile
+      maxWidth: '100vw', // Prevent horizontal overflow
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',

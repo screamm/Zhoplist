@@ -1,26 +1,9 @@
-/* Global Reset and Base Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html, body, #root {
-  height: 100%;
+/* App-specific overrides for the main container */
+#root {
+  /* Let index.css handle the body styles, just override root */
+  height: 100dvh; /* Dynamic viewport height - accounts for mobile browser bars */
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f7f9fc;
-  position: fixed;
-  width: 100%;
-}
-
-/* Prevent any default scrolling */
-body {
-  overscroll-behavior: none;
-  touch-action: pan-x pan-y;
-  -webkit-overflow-scrolling: touch;
+  position: relative;
 }
 
 /* Remove default styles from buttons and inputs */
@@ -48,9 +31,14 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
-/* Smooth transitions */
-* {
-  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+/* Smooth transitions - more specific selectors to reduce CSS processing */
+button:not(.no-transition),
+input:not(.no-transition),
+.interactive-element {
+  transition: color 0.3s cubic-bezier(0.4, 0.0, 0.2, 1),
+              background-color 0.3s cubic-bezier(0.4, 0.0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0.0, 0.2, 1),
+              opacity 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 /* Hide scrollbar but keep functionality */
@@ -87,9 +75,9 @@ button {
 }
 
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  text-align: center;
+  /* Remove max-width constraint that causes mobile width issues */
+  width: 100%;
+  /* Center content on larger screens through component-level styling instead */
 }
 
 .logo {
