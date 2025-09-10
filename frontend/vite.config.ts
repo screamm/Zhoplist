@@ -22,7 +22,7 @@ export default defineConfig({
       overlay: false
     }
   },
-  logLevel: 'warn',
+  logLevel: 'info',
   build: {
     // Tree-shaking and optimization
     rollupOptions: {
