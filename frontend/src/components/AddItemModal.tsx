@@ -38,11 +38,15 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
     setTitle(suggestion.name);
     // Automatically set category based on suggestion if available
     if (suggestion.category) {
+      // Fish products that should be categorized as fish
+      const fishProducts = ['lax', 'torsk', 'sej', 'räkor', 'tonfisk', 'fiskpinnar', 'kräftor', 'sill'];
+      const isFish = fishProducts.some(fish => suggestion.name.toLowerCase().includes(fish));
+      
       // Map swedish category to app category
       const categoryMapping: { [key: string]: string } = {
         'mejeri': 'dairy',
         'frukt-gront': 'vegetables',
-        'kott-fisk': 'meat',
+        'kott-fisk': isFish ? 'fish' : 'meat',
         'skafferi': 'pantry',
         'brod': 'bread',
         'frys': 'frozen',
