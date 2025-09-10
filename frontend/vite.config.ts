@@ -12,5 +12,5 @@ export default defineConfig({
       overlay: false
     }
   },
-  logLevel: 'warn'
+  logLevel: 'info'
 })

@@ -281,6 +281,13 @@ export function getCategoryForProduct(productName: string): string {
     p.aliases?.some(alias => alias.toLowerCase() === normalizedName)
   );
   
+  // Special handling for fish products in kott-fisk category
+  if (product?.category === 'kott-fisk') {
+    const fishProducts = ['lax', 'torsk', 'sej', 'räkor', 'tonfisk', 'fiskpinnar', 'kräftor', 'sill'];
+    const isFish = fishProducts.some(fish => normalizedName.includes(fish));
+    return isFish ? 'fish' : 'meat';
+  }
+  
   return product?.category || 'ovrigt';
 }
 
