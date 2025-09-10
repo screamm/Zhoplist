@@ -1,6 +1,7 @@
 // Smart Autocomplete med Machine Learning och användarhistorik
 import Fuse from 'fuse.js';
 import { PRODUCT_DATABASE, getCategoryForProduct, type Product } from '../data/swedishProducts';
+import { customProducts } from './customProducts';
 
 export interface Suggestion {
   name: string;
@@ -49,39 +50,69 @@ export class SmartAutocomplete {
   // Huvudfunktion - returnerar förslag baserat på input
   getSuggestions(input: string): Suggestion[] {
     if (!input || input.length < 1) {
-      return this.getPopularSuggestions();
+      return []; // Returnera inga förslag när input är tomt
     }
 
     const normalizedInput = input.toLowerCase().trim();
     const suggestions: Suggestion[] = [];
 
-    // 1. Fuzzy search i produktdatabas
+    // 1. Sök i custom products först (högsta prioritet)
+    const customResults = this.getCustomProductMatches(normalizedInput);
+    suggestions.push(...customResults);
+
+    // 2. Fuzzy search i produktdatabas
     const fuzzyResults = this.getFuzzyMatches(normalizedInput);
     suggestions.push(...fuzzyResults);
 
-    // 2. Sök i användarhistorik
+    // 3. Sök i användarhistorik
     const historyResults = this.getHistoryMatches(normalizedInput);
     suggestions.push(...historyResults);
 
-    // 3. Kombinera och ranka resultaten
+    // 4. Kombinera och ranka resultaten
     const rankedSuggestions = this.rankSuggestions(suggestions, normalizedInput);
 
-    // 4. Ta bort dubletter och begränsa antal
+    // 5. Ta bort dubletter och begränsa antal
     const uniqueSuggestions = this.removeDuplicates(rankedSuggestions);
     
     return uniqueSuggestions.slice(0, this.MAX_SUGGESTIONS);
   }
 
+  // Sök i custom products (användarinlärda produkter)
+  private getCustomProductMatches(input: string): Suggestion[] {
+    const customProductList = customProducts.getAllProducts();
+    const matches: Suggestion[] = [];
+
+    for (const product of customProductList) {
+      const productName = product.name.toLowerCase();
+      
+      // Exact match eller starts with har högsta prioritet
+      if (productName === input || productName.startsWith(input)) {
+        matches.push({
+          name: product.name,
+          category: product.category,
+          score: 1.0 + (product.usageCount * 0.1), // Bonus för användning
+          reason: 'history'
+        });
+      }
+      // Substring match har lägre prioritet
+      else if (productName.includes(input) && input.length >= 2) {
+        matches.push({
+          name: product.name,
+          category: product.category,
+          score: 0.8 + (product.usageCount * 0.05),
+          reason: 'history'
+        });
+      }
+    }
+
+    return matches.sort((a, b) => b.score - a.score);
+  }
+
   // Fuzzy search med Fuse.js
   private getFuzzyMatches(input: string): Suggestion[] {
-    const startTime = performance.now();
     const results = this.fuse.search(input);
-    const endTime = performance.now();
 
-    // Performance logging (endast i dev)
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`Fuzzy search took ${endTime - startTime}ms for "${input}"`);
-    }
+    // Performance logging removed for production
 
     return results.map((result) => ({
       name: result.item.name,
@@ -118,34 +149,6 @@ export class SmartAutocomplete {
     return matches;
   }
 
-  // Populära förslag när ingen input finns
-  private getPopularSuggestions(): Suggestion[] {
-    // Kombinera de mest använda från historik + populära från databasen
-    const historyPopular = Array.from(this.userHistory.entries())
-      .sort((a, b) => b[1].count - a[1].count)
-      .slice(0, 3)
-      .map(([name, data]) => ({
-        name,
-        category: data.category || getCategoryForProduct(name),
-        score: 1.0,
-        reason: 'history' as const
-      }));
-
-    // Fyll upp med populära produkter från databasen
-    const databasePopular = PRODUCT_DATABASE
-      .filter(p => p.popularity && p.popularity >= 8)
-      .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
-      .slice(0, this.MAX_SUGGESTIONS - historyPopular.length)
-      .map(p => ({
-        name: p.name,
-        category: p.category,
-        score: (p.popularity || 0) / 10,
-        reason: 'popularity' as const,
-        aliases: p.aliases
-      }));
-
-    return [...historyPopular, ...databasePopular];
-  }
 
   // Ranka förslag baserat på relevans
   private rankSuggestions(suggestions: Suggestion[], input: string): Suggestion[] {

@@ -1,5 +1,5 @@
 // Smart Autocomplete Komponent med svensk produktdatabas
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { smartAutocomplete, type Suggestion } from '../utils/smartAutocomplete';
 import { DEFAULT_CATEGORIES } from '../data/swedishProducts';
 import { getCategoryIcon as getCategoryIconSVG } from './CategoryIcons';
@@ -37,14 +37,11 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
   // Debounced search för performance
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (value.length >= 0) { // Visa även populära förslag när tomt
+      if (value.length >= 1) { // Visa bara förslag när användaren börjat skriva
         setIsLoading(true);
-        const startTime = performance.now();
         
         const newSuggestions = smartAutocomplete.getSuggestions(value);
         
-        const endTime = performance.now();
-        console.log(`Autocomplete search took ${endTime - startTime}ms`);
         
         setSuggestions(newSuggestions.slice(0, maxSuggestions));
         setIsLoading(false);
@@ -62,9 +59,14 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
   // Stäng dropdown när man klickar utanför
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setSelectedIndex(-1);
+      const target = event.target as Node;
+      if (inputRef.current && !inputRef.current.contains(target)) {
+        // Check if clicked element is a suggestion
+        const suggestionDropdown = inputRef.current.parentElement?.querySelector('[role="listbox"]');
+        if (suggestionDropdown && !suggestionDropdown.contains(target)) {
+          setIsOpen(false);
+          setSelectedIndex(-1);
+        }
       }
     };
 
@@ -98,6 +100,7 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
         
       case 'Enter':
         e.preventDefault();
+        e.stopPropagation(); // Prevent form submission
         if (selectedIndex >= 0) {
           handleSuggestionClick(suggestions[selectedIndex]);
         }
@@ -122,9 +125,14 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
   }, [selectedIndex]);
 
   // Hantera val av suggestion
-  const handleSuggestionClick = (suggestion: Suggestion) => {
+  const handleSuggestionClick = useCallback((suggestion: Suggestion) => {
     // Lär autocomplete från valet
     smartAutocomplete.learn(suggestion.name);
+    
+    // Stäng dropdown först för att förhindra återöppning
+    setIsOpen(false);
+    setSelectedIndex(-1);
+    setSuggestions([]);
     
     // Uppdatera värdet till det valda förslaget
     onChange(suggestion.name);
@@ -132,13 +140,15 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
     // Meddela parent component
     onSelect(suggestion);
     
-    // Stäng dropdown
-    setIsOpen(false);
-    setSelectedIndex(-1);
-  };
+    // Blur input för att helt stänga autocomplete
+    if (inputRef.current) {
+      inputRef.current.blur();
+      setTimeout(() => inputRef.current?.focus(), 50); // Focus tillbaka efter kort delay
+    }
+  }, [onChange, onSelect]);
 
   // Mappa svenska kategori-id till app-kategori-id
-  const categoryMapping: { [key: string]: string } = {
+  const categoryMapping = useMemo(() => ({
     'mejeri': 'dairy',
     'frukt-gront': 'vegetables', // Frukt & grönt maps to vegetables (or could split)
     'kott-fisk': 'meat', // Kött & fisk maps to meat
@@ -151,17 +161,17 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
     'stad': 'household',
     'husdjur': 'personal',
     'ovrigt': 'pantry'
-  };
+  }), []);
 
   // Få kategori-ikon
-  const getCategoryIcon = (categoryId: string): React.ReactNode => {
-    const mappedId = categoryMapping[categoryId] || categoryId;
+  const getCategoryIcon = useCallback((categoryId: string): React.ReactNode => {
+    const mappedId = (categoryMapping as Record<string, string>)[categoryId] || categoryId;
     const appCategory = SHOPPING_CATEGORIES.find(c => c.id === mappedId);
     
     if (!appCategory) return null;
     
     return getCategoryIconSVG(mappedId, appCategory.color);
-  };
+  }, [categoryMapping]);
 
   // Highlight matched text
   const highlightMatch = (text: string, query: string): React.ReactNode => {
@@ -198,7 +208,11 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
             : 'hover:bg-white/10'
           }
         `}
-        onClick={() => handleSuggestionClick(suggestion)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleSuggestionClick(suggestion);
+        }}
         role="option"
         aria-selected={selectedIndex === index}
         tabIndex={-1}
@@ -209,7 +223,7 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
               className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
               style={{ 
                 backgroundColor: (() => {
-                  const mappedId = categoryMapping[suggestion.category] || suggestion.category;
+                  const mappedId = (categoryMapping as Record<string, string>)[suggestion.category] || suggestion.category;
                   const appCategory = SHOPPING_CATEGORIES.find(c => c.id === mappedId);
                   return appCategory ? appCategory.color + '30' : '#64748B30';
                 })()
@@ -236,7 +250,7 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
 
       </div>
     ))
-  ), [suggestions, selectedIndex, value, showCategoryHints]);
+  ), [suggestions, selectedIndex, value, showCategoryHints, handleSuggestionClick, categoryMapping, getCategoryIcon]);
 
   return (
     <div className="relative w-full">
@@ -248,7 +262,7 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         onFocus={() => {
-          if (suggestions.length > 0) setIsOpen(true);
+          if (value.length >= 1 && suggestions.length > 0) setIsOpen(true);
         }}
         placeholder={placeholder}
         disabled={disabled}

@@ -8,6 +8,7 @@ import { AddItemModal } from './AddItemModal.js';
 import { generateShoppingMockData } from '../utils/shoppingMockData.js';
 import { getCategoryIcon } from './CategoryIcons.js';
 import { BottomNavbar } from './BottomNavbar.js';
+import { FlatListView } from './FlatListView.js';
 
 interface CategoryRowProps {
   category: Category;
@@ -192,7 +193,18 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
 };
 
 export const ModernShoppingList: React.FC = () => {
-  const { filteredTodos, createTodo, setTodos, showToast, toggleTodo, deleteCompleted } = useTodo();
+  const { 
+    filteredTodos, 
+    createTodo, 
+    setTodos, 
+    showToast, 
+    toggleTodo, 
+    deleteCompleted,
+    state,
+    toggleViewMode,
+    uncrossedCount,
+    completedCount
+  } = useTodo();
   const { t, language, setLanguage } = useLanguage();
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -206,7 +218,6 @@ export const ModernShoppingList: React.FC = () => {
   const [currentListName, setCurrentListName] = useState('');
   
   // Debug logging
-  console.log('🔴 ModernShoppingList rendering - NY KATEGORI knapp ska synas!');
   
   // Load saved lists on component mount
   const loadSavedLists = () => {
@@ -322,8 +333,8 @@ export const ModernShoppingList: React.FC = () => {
     loadSavedLists();
   }, []);
 
-  // Beräkna completed count för BottomNavbar
-  const completedCount = filteredTodos.filter(todo => todo.completed).length;
+  // Get active (uncrossed) todos for flat view - only show uncompleted items
+  const activeTodos = filteredTodos.filter(todo => !todo.completed);
 
   return (
     <div style={{ 
@@ -375,83 +386,97 @@ export const ModernShoppingList: React.FC = () => {
         </div>
       </div>
 
-      {/* Categories List */}
+      {/* Main Content Area - Toggle between categorized and flat view */}
       <div style={{ 
         flex: 1,
-        overflowY: 'auto',
-        padding: '20px 0',
-        paddingBottom: '140px',
-        WebkitOverflowScrolling: 'touch'
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
       }}>
-        {SHOPPING_CATEGORIES.map(category => {
-          const items = getItemsByCategory(category.id);
-          
-          return (
-            <CategoryRow
-              key={category.id}
-              category={category}
-              items={items}
-              isExpanded={expandedCategories.has(category.id)}
-              onCategoryClick={() => toggleCategory(category.id)}
-              onToggleItem={toggleTodo}
-            />
-          );
-        })}
-        
-        {/* Add Category Button */}
-        <div 
-          onClick={() => {
-            alert('Funktion för att lägga till ny kategori kommer snart!');
-          }}
-          style={{ 
-            marginBottom: '2px',
-            padding: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            cursor: 'pointer',
-            borderLeft: '4px solid #6b7280',
-            borderRight: '4px solid transparent',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            background: 'linear-gradient(90deg, rgba(107, 114, 128, 0.1) 0%, transparent 100%)',
-            border: '2px dashed rgba(107, 114, 128, 0.5)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ 
-              width: '52px',
-              height: '52px',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(107, 114, 128, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '24px',
-              border: '2px dashed rgba(107, 114, 128, 0.5)'
-            }}>
-              ➕
-            </div>
-            <div>
-              <h3 style={{ 
-                fontSize: '17px',
-                fontWeight: '600',
-                color: '#ffffff',
-                margin: 0,
-                letterSpacing: '-0.01em'
-              }}>
-                Lägg till kategori
-              </h3>
-              <p style={{ 
-                fontSize: '14px',
-                color: 'rgba(255, 255, 255, 0.5)',
-                margin: 0,
-                marginTop: '2px'
-              }}>
-                Skapa ny kategori
-              </p>
+        {state.viewMode === 'categorized' ? (
+          <div style={{ 
+            flex: 1,
+            overflowY: 'auto',
+            padding: '20px 0',
+            paddingBottom: '140px',
+            WebkitOverflowScrolling: 'touch'
+          }}>
+            {SHOPPING_CATEGORIES.map(category => {
+              const items = getItemsByCategory(category.id);
+              
+              return (
+                <CategoryRow
+                  key={category.id}
+                  category={category}
+                  items={items}
+                  isExpanded={expandedCategories.has(category.id)}
+                  onCategoryClick={() => toggleCategory(category.id)}
+                  onToggleItem={toggleTodo}
+                />
+              );
+            })}
+            
+            {/* Add Category Button */}
+            <div 
+              onClick={() => {
+                alert('Funktion för att lägga till ny kategori kommer snart!');
+              }}
+              style={{ 
+                marginBottom: '2px',
+                padding: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                cursor: 'pointer',
+                borderLeft: '4px solid #6b7280',
+                borderRight: '4px solid transparent',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                background: 'linear-gradient(90deg, rgba(107, 114, 128, 0.1) 0%, transparent 100%)',
+                border: '2px dashed rgba(107, 114, 128, 0.5)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ 
+                  width: '52px',
+                  height: '52px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  border: '2px dashed rgba(107, 114, 128, 0.5)'
+                }}>
+                  ➕
+                </div>
+                <div>
+                  <h3 style={{ 
+                    fontSize: '17px',
+                    fontWeight: '600',
+                    color: '#ffffff',
+                    margin: 0,
+                    letterSpacing: '-0.01em'
+                  }}>
+                    Lägg till kategori
+                  </h3>
+                  <p style={{ 
+                    fontSize: '14px',
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    margin: 0,
+                    marginTop: '2px'
+                  }}>
+                    Skapa ny kategori
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <FlatListView 
+            items={activeTodos} 
+            onToggleItem={toggleTodo}
+          />
+        )}
       </div>
 
       {/* Hamburger Menu */}
@@ -862,7 +887,10 @@ export const ModernShoppingList: React.FC = () => {
       <BottomNavbar
         onAddItem={() => setIsAddModalOpen(true)}
         onDeleteCompleted={deleteCompleted}
+        onToggleView={toggleViewMode}
         completedCount={completedCount}
+        uncrossedCount={uncrossedCount}
+        viewMode={state.viewMode}
       />
     </div>
   );

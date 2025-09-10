@@ -54,14 +54,14 @@ export class AdManager {
     }
 
     // Initiera AdMob (när Capacitor är installerat)
-    if (typeof (window as any).Capacitor !== 'undefined') {
+    if (typeof (window as unknown as { Capacitor?: unknown }).Capacitor !== 'undefined') {
       try {
         const { AdMob } = await import('@capacitor-community/admob');
         
         await AdMob.initialize({
           testDeviceIdentifiers: ['YOUR_TEST_DEVICE_ID'], // Lägg till ditt test device ID
           initializeForTesting: AD_CONFIG.USE_TEST_ADS,
-        } as any);
+        } as Record<string, unknown>);
 
         this.adsInitialized = true;
         console.log('AdMob initialized');
@@ -84,7 +84,7 @@ export class AdManager {
       const { AdMob, BannerAdSize, BannerAdPosition } = 
         await import('@capacitor-community/admob');
       
-      const options: any = {
+      const options: Record<string, unknown> = {
         adId: AD_CONFIG.USE_TEST_ADS ? AD_CONFIG.TEST_BANNER_AD_ID : AD_CONFIG.BANNER_AD_ID,
         adSize: BannerAdSize.ADAPTIVE_BANNER,
         position: BannerAdPosition.BOTTOM_CENTER,
@@ -92,7 +92,7 @@ export class AdManager {
         isTesting: AD_CONFIG.USE_TEST_ADS,
       };
 
-      await AdMob.showBanner(options);
+      await (AdMob.showBanner as any)(options);
       console.log('Banner ad shown');
     } catch (error) {
       console.error('Failed to show banner:', error);
@@ -135,12 +135,12 @@ export class AdManager {
     try {
       const { AdMob } = await import('@capacitor-community/admob');
       
-      const options: any = {
+      const options: Record<string, unknown> = {
         adId: AD_CONFIG.USE_TEST_ADS ? AD_CONFIG.TEST_INTERSTITIAL_AD_ID : AD_CONFIG.INTERSTITIAL_AD_ID,
         isTesting: AD_CONFIG.USE_TEST_ADS,
       };
 
-      await AdMob.prepareInterstitial(options);
+      await (AdMob.prepareInterstitial as any)(options);
       await AdMob.showInterstitial();
       
       this.lastInterstitialTime = now;
@@ -160,9 +160,9 @@ export class AdManager {
       const { AdMob, RewardAdPluginEvents } = 
         await import('@capacitor-community/admob');
       
-      return new Promise(async (resolve) => {
+      return new Promise((resolve) => {
         // Setup reward listener
-        AdMob.addListener(RewardAdPluginEvents.Rewarded, (reward: any) => {
+        (AdMob.addListener as any)(RewardAdPluginEvents.Rewarded, (reward: Record<string, unknown>) => {
           console.log('User rewarded:', reward);
           this.grantTemporaryPremium();
           resolve(true);
@@ -172,13 +172,17 @@ export class AdManager {
           resolve(false);
         });
 
-        const options: any = {
+        const options: Record<string, unknown> = {
           adId: AD_CONFIG.USE_TEST_ADS ? AD_CONFIG.TEST_REWARDED_AD_ID : AD_CONFIG.REWARDED_AD_ID,
           isTesting: AD_CONFIG.USE_TEST_ADS,
         };
 
-        await AdMob.prepareRewardVideoAd(options);
-        await AdMob.showRewardVideoAd();
+        (AdMob.prepareRewardVideoAd as any)(options).then(() => {
+          return AdMob.showRewardVideoAd();
+        }).catch((error: unknown) => {
+          console.error('Failed to prepare/show rewarded ad:', error);
+          resolve(false);
+        });
       });
     } catch (error) {
       console.error('Failed to show rewarded ad:', error);
@@ -217,7 +221,7 @@ export class AdManager {
 
   // Play Billing - One-time purchase
   async purchasePremium(): Promise<boolean> {
-    if (typeof (window as any).Capacitor === 'undefined') {
+    if (typeof (window as unknown as { Capacitor?: unknown }).Capacitor === 'undefined') {
       console.log('Not running in Capacitor - opening web payment');
       // Fallback till web payment
       window.open('https://zhoplist.com/premium', '_blank');
@@ -276,7 +280,7 @@ export class AdManager {
 
   // Återställ köp (om användare byter enhet)
   async restorePurchases(): Promise<boolean> {
-    if (typeof (window as any).Capacitor === 'undefined') {
+    if (typeof (window as unknown as { Capacitor?: unknown }).Capacitor === 'undefined') {
       return false;
     }
 
@@ -416,7 +420,7 @@ export class AdManager {
 
 // Helper function för att växla mellan test och produktion
 export function setAdTestMode(isTest: boolean) {
-  (AD_CONFIG as any).USE_TEST_ADS = isTest;
+  (AD_CONFIG as Record<string, unknown>).USE_TEST_ADS = isTest;
   console.log(`AdMob test mode: ${isTest ? 'ON' : 'OFF'}`);
 }
 

@@ -71,7 +71,7 @@ export async function installPWA() {
 // Kolla om appen körs som PWA
 export function isPWA() {
   return window.matchMedia('(display-mode: standalone)').matches ||
-         (window.navigator as any).standalone ||
+         (window.navigator as unknown as { standalone?: boolean }).standalone ||
          document.referrer.includes('android-app://');
 }
 
@@ -148,7 +148,7 @@ async function syncOfflineData() {
     try {
       const registration = await navigator.serviceWorker.ready;
       if ('sync' in registration) {
-        await (registration as any).sync.register('sync-todos');
+        await (registration as unknown as { sync: { register: (tag: string) => Promise<void> } }).sync.register('sync-todos');
         console.log('Bakgrundssynk schemalagd');
       } else {
         manualSync();

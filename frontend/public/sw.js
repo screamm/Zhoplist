@@ -114,7 +114,10 @@ self.addEventListener('fetch', (event) => {
           const responseToCache = response.clone();
           
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache);
+            // Don't cache chrome-extension or other unsupported schemes
+            if (request.url.startsWith('http')) {
+              cache.put(request, responseToCache);
+            }
           });
           
           return response;

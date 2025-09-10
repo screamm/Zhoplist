@@ -192,7 +192,7 @@ export class CategoryManager {
   }
 
   // Få alla items som tillhör en kategori (för migration när kategori tas bort)
-  getItemsInCategory(_categoryId: string): string[] {
+  getItemsInCategory(): string[] {
     // Denna funktion skulle behöva integration med todo-systemet
     // För nu returnerar vi tom array
     return [];

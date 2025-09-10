@@ -6,7 +6,7 @@ interface AdNetwork {
   priority: number;
   eCPM: number;
   fillRate: number;
-  configuration: any;
+  configuration: Record<string, unknown>;
 }
 
 export const AD_NETWORKS: AdNetwork[] = [
@@ -117,17 +117,17 @@ export class AdMediation {
   private currentNetwork = 0;
   private failedAttempts = 0;
   
-  async showAd(type: 'banner' | 'interstitial' | 'rewarded'): Promise<boolean> {
+  async showAd(): Promise<boolean> {
     for (let i = 0; i < AD_NETWORKS.length; i++) {
       const network = AD_NETWORKS[this.currentNetwork];
       
       try {
-        const success = await this.loadAdFromNetwork(network, type);
+        const success = await this.loadAdFromNetwork(network);
         if (success) {
           this.resetFailureCount();
           return true;
         }
-      } catch (error) {
+      } catch {
         console.warn(`${network.name} failed, trying next...`);
         this.moveToNextNetwork();
       }
@@ -136,33 +136,33 @@ export class AdMediation {
     return false; // Alla networks misslyckades
   }
   
-  private async loadAdFromNetwork(network: AdNetwork, type: string): Promise<boolean> {
+  private async loadAdFromNetwork(network: AdNetwork): Promise<boolean> {
     switch (network.name) {
       case 'Google AdMob':
-        return this.loadAdMobAd(type);
+        return this.loadAdMobAd();
       case 'Facebook Audience Network':
-        return this.loadFacebookAd(type);
+        return this.loadFacebookAd();
       case 'Adnami Nordic':
-        return this.loadAdnamiAd(type);
+        return this.loadAdnamiAd();
       default:
         return false;
     }
   }
   
-  private async loadAdMobAd(_type: string): Promise<boolean> {
+  private async loadAdMobAd(): Promise<boolean> {
     // AdMob implementation (redan implementerat)
     // const { AdMob } = await import('@capacitor-community/admob');
     // ... existing AdMob code
     return true;
   }
   
-  private async loadFacebookAd(_type: string): Promise<boolean> {
+  private async loadFacebookAd(): Promise<boolean> {
     // Facebook Audience Network implementation
     // Kräver @react-native-async-storage/async-storage
     return Math.random() > 0.2; // 80% success rate
   }
   
-  private async loadAdnamiAd(_type: string): Promise<boolean> {
+  private async loadAdnamiAd(): Promise<boolean> {
     // Adnami integration för nordiska marknaden
     // Högre CPM men lägre fill rate
     return Math.random() > 0.6; // 40% success rate

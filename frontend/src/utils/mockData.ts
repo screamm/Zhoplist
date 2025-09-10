@@ -58,9 +58,23 @@ export const mockTodos: Todo[] = [
 export const createMockAPI = () => {
   let todos = [...mockTodos];
 
+  // Helper to get current session ID dynamically
+  const getCurrentSession = async () => {
+    try {
+      const { sessionManager } = await import('./sessionManager.js');
+      return sessionManager.getSessionId();
+    } catch {
+      return 'default-session';
+    }
+  };
+
   return {
-    getTodos: () => Promise.resolve([...todos]),
-    createTodo: (todoData: TodoFormData) => {
+    getTodos: async () => {
+      const currentSession = await getCurrentSession();
+      return todos.filter(todo => todo.userSession === currentSession);
+    },
+    createTodo: async (todoData: TodoFormData) => {
+      const currentSession = await getCurrentSession();
       const newTodo: Todo = {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         title: todoData.title,
@@ -72,24 +86,27 @@ export const createMockAPI = () => {
         updatedAt: new Date().toISOString(),
         dueDate: todoData.dueDate,
         tags: todoData.tags || [],
-        userSession: 'default-session',
+        userSession: currentSession,
       };
       todos.unshift(newTodo);
       return Promise.resolve(newTodo);
     },
-    updateTodo: (id: string, updates: Partial<TodoFormData>) => {
-      const index = todos.findIndex(t => t.id === id);
+    updateTodo: async (id: string, updates: Partial<TodoFormData>) => {
+      const currentSession = await getCurrentSession();
+      const index = todos.findIndex(t => t.id === id && t.userSession === currentSession);
       if (index !== -1) {
         todos[index] = { ...todos[index], ...updates, updatedAt: new Date().toISOString() };
       }
       return Promise.resolve();
     },
-    deleteTodo: (id: string) => {
-      todos = todos.filter(t => t.id !== id);
+    deleteTodo: async (id: string) => {
+      const currentSession = await getCurrentSession();
+      todos = todos.filter(t => !(t.id === id && t.userSession === currentSession));
       return Promise.resolve();
     },
-    toggleTodo: (id: string) => {
-      const index = todos.findIndex(t => t.id === id);
+    toggleTodo: async (id: string) => {
+      const currentSession = await getCurrentSession();
+      const index = todos.findIndex(t => t.id === id && t.userSession === currentSession);
       if (index !== -1) {
         todos[index] = { 
           ...todos[index], 
@@ -99,9 +116,11 @@ export const createMockAPI = () => {
       }
       return Promise.resolve();
     },
-    deleteCompletedTodos: () => {
-      const deletedCount = todos.filter(t => t.completed).length;
-      todos = todos.filter(t => !t.completed);
+    deleteCompletedTodos: async () => {
+      const currentSession = await getCurrentSession();
+      const sessionTodos = todos.filter(t => t.userSession === currentSession);
+      const deletedCount = sessionTodos.filter(t => t.completed).length;
+      todos = todos.filter(t => !(t.userSession === currentSession && t.completed));
       return Promise.resolve({ message: 'Completed todos deleted', deletedCount });
     },
   };

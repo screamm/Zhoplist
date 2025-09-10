@@ -37,6 +37,7 @@ interface TodoState {
   isAddModalOpen: boolean;
   editingTodo: Todo | null;
   toasts: ToastNotification[];
+  viewMode: 'categorized' | 'flat'; // New: Toggle between categorized and flat list view
 }
 
 // Action types
@@ -55,7 +56,8 @@ type TodoAction =
   | { type: 'SET_ADD_MODAL_OPEN'; payload: boolean }
   | { type: 'SET_EDITING_TODO'; payload: Todo | null }
   | { type: 'ADD_TOAST'; payload: ToastNotification }
-  | { type: 'REMOVE_TOAST'; payload: string };
+  | { type: 'REMOVE_TOAST'; payload: string }
+  | { type: 'SET_VIEW_MODE'; payload: 'categorized' | 'flat' }; // New: Set view mode
 
 // Initial state
 const initialState: TodoState = {
@@ -68,11 +70,11 @@ const initialState: TodoState = {
   isAddModalOpen: false,
   editingTodo: null,
   toasts: [],
+  viewMode: 'categorized', // Default to categorized view
 };
 
 // Reducer function
 const todoReducer = (state: TodoState, action: TodoAction): TodoState => {
-  console.log('🔄 Reducer received action:', action.type, action);
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
@@ -81,23 +83,18 @@ const todoReducer = (state: TodoState, action: TodoAction): TodoState => {
       return { ...state, error: action.payload, isLoading: false };
 
     case 'SET_TODOS': {
-      console.log('📝 SET_TODOS: setting todos to:', action.payload);
       const newState1 = { ...state, todos: action.payload, isLoading: false, error: null };
-      console.log('📝 SET_TODOS: new state:', newState1);
       saveToStorage(action.payload); // Auto-save to localStorage
       return newState1;
     }
 
     case 'ADD_TODO': {
-      console.log('➕ ADD_TODO: adding todo:', action.payload);
-      console.log('➕ ADD_TODO: current todos:', state.todos);
       const newTodos = [action.payload, ...(state.todos || [])];
       const newState2 = { 
         ...state, 
         todos: newTodos,
         isAddModalOpen: false 
       };
-      console.log('➕ ADD_TODO: new state:', newState2);
       saveToStorage(newTodos); // Auto-save to localStorage
       return newState2;
     }
@@ -162,6 +159,12 @@ const todoReducer = (state: TodoState, action: TodoAction): TodoState => {
         toasts: (state.toasts || []).filter(toast => toast.id !== action.payload),
       };
 
+    case 'SET_VIEW_MODE':
+      return {
+        ...state,
+        viewMode: action.payload,
+      };
+
     default:
       return state;
   }
@@ -187,11 +190,16 @@ interface TodoContextType {
   closeAddModal: () => void;
   startEditingTodo: (todo: Todo) => void;
   stopEditingTodo: () => void;
+  setViewMode: (mode: 'categorized' | 'flat') => void; // New: Set view mode
+  toggleViewMode: () => void; // New: Toggle between view modes
   // Toast actions
   showToast: (toast: Omit<ToastNotification, 'id'>) => void;
   hideToast: (id: string) => void;
   // Computed values
   filteredTodos: Todo[];
+  // Count helpers
+  uncrossedCount: number; // New: Count of active/uncrossed items
+  completedCount: number; // New: Count of completed/crossed items
 }
 
 // Create context
@@ -228,44 +236,38 @@ export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, [state.toasts, hideToast]);
 
-  // API action implementations - offline first
+  // API action implementations - server first approach
   const loadTodos = React.useCallback(async () => {
-    console.log('🔄 Loading todos...');
+    dispatch({ type: 'SET_LOADING', payload: true });
+    
     try {
-      // First, load from localStorage for instant display
-      const cachedTodos = loadFromStorage();
-      if (cachedTodos.length > 0) {
-        console.log('📱 Loaded from localStorage:', cachedTodos);
-        dispatch({ type: 'SET_TODOS', payload: cachedTodos });
-      }
-
-      // Then sync with server in background
-      dispatch({ type: 'SET_LOADING', payload: true });
+      // Try server first for fresh data
       const todos = await api.getTodos();
-      console.log('📥 API returned todos:', todos);
       dispatch({ type: 'SET_TODOS', payload: todos });
-      saveToStorage(todos); // Save server data to localStorage
-      console.log('📤 Synced with server and saved to localStorage');
+      saveToStorage(todos); // Cache server data
     } catch (error) {
-      console.error('❌ Error syncing with server:', error);
-      // If we have cached data, continue using it
+      console.error('❌ Server sync failed:', error);
+      
+      // Fall back to localStorage only if server fails
       const cachedTodos = loadFromStorage();
       if (cachedTodos.length > 0) {
         dispatch({ type: 'SET_TODOS', payload: cachedTodos });
         showToast({
           type: 'warning',
           title: 'Working offline',
-          message: 'Using cached data',
-          duration: 3000,
+          message: 'Using cached data - server unavailable',
+          duration: 5000,
         });
       } else {
-        const errorMessage = error instanceof Error ? error.message : 'Fel vid laddning av todos';
+        // No cached data and server failed
+        const errorMessage = error instanceof Error ? error.message : 'Cannot load todos - server unavailable';
         dispatch({ type: 'SET_ERROR', payload: errorMessage });
+        dispatch({ type: 'SET_TODOS', payload: [] }); // Start with empty list
         showToast({
           type: 'error',
-          title: 'Fel vid laddning',
-          message: errorMessage,
-          duration: 5000,
+          title: 'Connection failed',
+          message: 'Cannot reach server. Please check your connection.',
+          duration: 10000,
         });
       }
     } finally {
@@ -290,12 +292,9 @@ export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [loadTodos]);
 
   const createTodo = async (todoData: TodoFormData) => {
-    console.log('🔍 CreateTodo called with:', todoData);
     try {
       const newTodo = await api.createTodo(todoData);
-      console.log('✅ API returned new todo:', newTodo);
       dispatch({ type: 'ADD_TODO', payload: newTodo });
-      console.log('📤 Dispatched ADD_TODO action');
       showToast({
         type: 'success',
         title: 'Todo skapad',
@@ -423,13 +422,19 @@ export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'SET_TODOS', payload: todos });
   };
 
+  const setViewMode = (mode: 'categorized' | 'flat') => {
+    dispatch({ type: 'SET_VIEW_MODE', payload: mode });
+  };
+
+  const toggleViewMode = () => {
+    const newMode = state.viewMode === 'categorized' ? 'flat' : 'categorized';
+    dispatch({ type: 'SET_VIEW_MODE', payload: newMode });
+  };
+
   // Computed filtered and sorted todos
   const filteredTodos = React.useMemo(() => {
-    console.log('🔍 Computing filteredTodos. State:', state);
-    console.log('🔍 Raw todos:', state?.todos);
     
     if (!state || !state.todos) {
-      console.log('❌ No state or todos, returning empty array');
       return [];
     }
     
@@ -442,7 +447,6 @@ export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       typeof todo.title === 'string'
     );
     
-    console.log('✅ Valid todos after filtering:', filtered);
 
     // Apply filter
     switch (state.filter) {
@@ -500,17 +504,20 @@ export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         break;
     }
 
-    console.log('🎯 Final filteredTodos result:', filtered);
     return filtered;
   }, [state.todos, state.filter, state.sort, state.searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Compute count helpers
+  const uncrossedCount = React.useMemo(() => {
+    return filteredTodos.filter(todo => !todo.completed).length;
+  }, [filteredTodos]);
+
+  const completedCount = React.useMemo(() => {
+    return filteredTodos.filter(todo => todo.completed).length;
+  }, [filteredTodos]);
+
   // Log dependency changes
   React.useEffect(() => {
-    console.log('🔄 filteredTodos dependencies changed:');
-    console.log('  - state.todos:', state.todos);
-    console.log('  - state.filter:', state.filter);
-    console.log('  - state.sort:', state.sort);
-    console.log('  - state.searchQuery:', state.searchQuery);
   }, [state.todos, state.filter, state.sort, state.searchQuery]);
 
   const contextValue: TodoContextType = {
@@ -530,9 +537,13 @@ export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     closeAddModal,
     startEditingTodo,
     stopEditingTodo,
+    setViewMode,
+    toggleViewMode,
     showToast,
     hideToast,
     filteredTodos,
+    uncrossedCount,
+    completedCount,
   };
 
   return (

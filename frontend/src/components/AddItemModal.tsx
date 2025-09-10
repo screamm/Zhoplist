@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTodo } from '../context/TodoContext';
 import { useLanguage } from '../context/LanguageContext';
-import { getCategoryById } from '../types/categories';
+import { getCategoryById, SHOPPING_CATEGORIES } from '../types/categories';
 import { X, Plus, ShoppingBag, Minus } from 'lucide-react';
 import SmartAutocomplete from './SmartAutocomplete';
 import { type Suggestion } from '../utils/smartAutocomplete';
 import { getCategoryIcon } from './CategoryIcons';
+import { CategorySelectionModal } from './CategorySelectionModal';
+import { customProducts } from '../utils/customProducts';
 
 interface AddItemModalProps {
   isOpen: boolean;
@@ -20,6 +22,8 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
   const [quantity, setQuantity] = useState(1);
   const [category, setCategory] = useState(defaultCategory || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [pendingItem, setPendingItem] = useState<{title: string, quantity: number} | null>(null);
 
   useEffect(() => {
     if (defaultCategory) {
@@ -65,31 +69,44 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
       // Om ingen kategori är satt, använd defaultCategory eller försök hitta rätt kategori
       let finalCategory = category || defaultCategory || '';
       
-      // Om vi fortfarande inte har kategori, försök hitta från produktdatabasen
+      // Om vi fortfarande inte har kategori, försök hitta från produktdatabasen eller custom products
       if (!finalCategory) {
-        // Importera produktdatabasen för att kunna söka
-        const { PRODUCT_DATABASE } = await import('../data/swedishProducts');
-        const product = PRODUCT_DATABASE.find(p => 
-          p.name.toLowerCase() === title.trim().toLowerCase() ||
-          p.aliases?.some(alias => alias.toLowerCase() === title.trim().toLowerCase())
-        );
-        
-        if (product) {
-          const categoryMapping: { [key: string]: string } = {
-            'mejeri': 'dairy',
-            'frukt-gront': 'vegetables',
-            'kott-fisk': 'meat',
-            'skafferi': 'pantry',
-            'brod': 'bread',
-            'frys': 'frozen',
-            'dryck': 'drinks',
-            'godis-snacks': 'snacks',
-            'hygien': 'personal',
-            'stad': 'household',
-            'husdjur': 'personal',
-            'ovrigt': 'pantry'
-          };
-          finalCategory = categoryMapping[product.category] || product.category;
+        // Kolla först i custom products (användarlärda produkter)
+        const customProduct = customProducts.findProduct(title.trim());
+        if (customProduct) {
+          finalCategory = customProduct.category;
+          customProducts.incrementUsage(title.trim()); // Öka usage count
+        } else {
+          // Importera produktdatabasen för att kunna söka
+          const { PRODUCT_DATABASE } = await import('../data/swedishProducts');
+          const product = PRODUCT_DATABASE.find(p => 
+            p.name.toLowerCase() === title.trim().toLowerCase() ||
+            p.aliases?.some(alias => alias.toLowerCase() === title.trim().toLowerCase())
+          );
+          
+          if (product) {
+            const categoryMapping: { [key: string]: string } = {
+              'mejeri': 'dairy',
+              'frukt-gront': 'vegetables',
+              'kott-fisk': 'meat',
+              'skafferi': 'pantry',
+              'brod': 'bread',
+              'frys': 'frozen',
+              'dryck': 'drinks',
+              'godis-snacks': 'snacks',
+              'hygien': 'personal',
+              'stad': 'household',
+              'husdjur': 'personal',
+              'ovrigt': 'pantry'
+            };
+            finalCategory = categoryMapping[product.category] || product.category;
+          } else {
+            // Produkten finns inte i någon databas - visa category modal
+            setPendingItem({ title: itemTitle, quantity });
+            setShowCategoryModal(true);
+            setIsSubmitting(false);
+            return; // Avbryt här och vänta på kategori-val
+          }
         }
       }
       
@@ -99,6 +116,11 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
         category: finalCategory,
         priority: 0
       });
+      
+      // Lägg till i autocomplete för framtiden
+      const { smartAutocomplete } = await import('../utils/smartAutocomplete');
+      smartAutocomplete.learn(title.trim());
+      
       setTitle('');
       setQuantity(1);
       setCategory('');
@@ -108,6 +130,45 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCategorySelected = async (selectedCategoryId: string) => {
+    if (!pendingItem) return;
+    
+    setIsSubmitting(true);
+    try {
+      await createTodo({
+        title: pendingItem.title,
+        description: '',
+        category: selectedCategoryId,
+        priority: 0
+      });
+      
+      // Lägg till i autocomplete för framtiden
+      const { smartAutocomplete } = await import('../utils/smartAutocomplete');
+      smartAutocomplete.learn(title.trim());
+      
+      // Spara produkten i custom products för framtida användning
+      const productName = pendingItem.title.replace(/\s\(\d+st\)$/, ''); // Remove quantity
+      customProducts.addProduct(productName, selectedCategoryId);
+      
+      setTitle('');
+      setQuantity(1);
+      setCategory('');
+      setPendingItem(null);
+      setShowCategoryModal(false);
+      onClose();
+    } catch (error) {
+      console.error('Failed to create item after category selection:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCategoryModalClose = () => {
+    setShowCategoryModal(false);
+    setPendingItem(null);
+    setIsSubmitting(false);
   };
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -242,6 +303,15 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
           </div>
         </form>
       </div>
+      
+      {/* Category Selection Modal */}
+      <CategorySelectionModal
+        isOpen={showCategoryModal}
+        onClose={handleCategoryModalClose}
+        onSelect={handleCategorySelected}
+        itemName={pendingItem?.title.replace(/\s\(\d+st\)$/, '') || title} // Remove quantity from display
+        availableCategories={SHOPPING_CATEGORIES.map(cat => cat.id)} // Show all categories for now
+      />
     </div>
   );
 };

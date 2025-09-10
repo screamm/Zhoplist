@@ -4,14 +4,20 @@ import { Plus, Trash2, Check } from 'lucide-react';
 interface BottomNavbarProps {
   onAddItem: () => void;
   onDeleteCompleted: () => void;
+  onToggleView: () => void;
   completedCount: number;
+  uncrossedCount: number;
+  viewMode: 'categorized' | 'flat';
   className?: string;
 }
 
 export const BottomNavbar: React.FC<BottomNavbarProps> = ({
   onAddItem,
   onDeleteCompleted,
+  onToggleView,
   completedCount,
+  uncrossedCount,
+  viewMode,
   className = ''
 }) => {
   return (
@@ -79,16 +85,29 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({
           </button>
         </div>
 
-        {/* Completed indicator */}
+        {/* View toggle button - shows uncrossed count */}
         <div className="nav-button-right">
-          <div className="flex items-center space-x-2 px-4 py-2 rounded-2xl bg-white/5 border border-white/10">
+          <button
+            onClick={onToggleView}
+            className="
+              flex items-center space-x-2 px-4 py-2 rounded-2xl
+              bg-white/5 border border-white/10
+              hover:bg-white/10 hover:border-white/20
+              active:scale-95
+              transition-all duration-200
+            "
+            title={viewMode === 'categorized' 
+              ? `Visa ${uncrossedCount} varor i lista`
+              : `Visa ${uncrossedCount} varor efter kategori`
+            }
+          >
             <div className="nav-icon-container">
               <Check size={18} className="text-green-400" />
             </div>
             <span className="text-sm font-medium text-white/70 nav-text-container">
-              {completedCount}
+              {uncrossedCount}
             </span>
-          </div>
+          </button>
         </div>
       </div>
 

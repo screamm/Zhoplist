@@ -55,6 +55,10 @@ interface Translations {
   noSavedLists: string;
   maxListsReached: string;
   save: string;
+  
+  // Category Selection Modal
+  whichCategory: string;
+  addNewCategory: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -111,6 +115,10 @@ const translations: Record<Language, Translations> = {
     noSavedLists: 'Inga sparade listor',
     maxListsReached: 'Max 5 listor kan sparas',
     save: 'Spara',
+    
+    // Category Selection Modal
+    whichCategory: 'Vilken kategori hör "{item}" till?',
+    addNewCategory: 'Lägg till ny kategori',
   },
   en: {
     // Header
@@ -165,6 +173,10 @@ const translations: Record<Language, Translations> = {
     noSavedLists: 'No saved lists',
     maxListsReached: 'Max 5 lists can be saved',
     save: 'Save',
+    
+    // Category Selection Modal
+    whichCategory: 'Which category does "{item}" belong to?',
+    addNewCategory: 'Add new category',
   },
 };
 

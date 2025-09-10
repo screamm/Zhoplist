@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Integration Test</title>
+</head>
+<body>
+    <h1>Frontend API Integration Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            console.log(message);
+            results.innerHTML += '<p>' + message + '</p>';
+        }
+        
+        async function testAPI() {
+            const sessionId = 'test-frontend-' + Date.now();
+            log('Starting API test with session: ' + sessionId);
+            
+            try {
+                // Test 1: Health check
+                log('1. Testing health endpoint...');
+                const healthResponse = await fetch('http://localhost:8787/health');
+                const healthData = await healthResponse.json();
+                log('✅ Health check: ' + JSON.stringify(healthData));
+                
+                // Test 2: Get empty todos
+                log('2. Testing GET todos (empty)...');
+                const getTodosResponse = await fetch('http://localhost:8787/api/todos', {
+                    headers: {
+                        'X-Session-ID': sessionId
+                    }
+                });
+                const todosData = await getTodosResponse.json();
+                log('✅ GET todos: ' + JSON.stringify(todosData));
+                
+                // Test 3: Create todo
+                log('3. Testing POST create todo...');
+                const createResponse = await fetch('http://localhost:8787/api/todos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Session-ID': sessionId
+                    },
+                    body: JSON.stringify({
+                        title: 'Frontend Test Item',
+                        description: 'Testing from frontend',
+                        category: 'test',
+                        priority: 1
+                    })
+                });
+                const createData = await createResponse.json();
+                log('✅ POST create: ' + JSON.stringify(createData));
+                
+                // Test 4: Get todos with item
+                log('4. Testing GET todos (with item)...');
+                const getTodos2Response = await fetch('http://localhost:8787/api/todos', {
+                    headers: {
+                        'X-Session-ID': sessionId
+                    }
+                });
+                const todos2Data = await getTodos2Response.json();
+                log('✅ GET todos with item: ' + JSON.stringify(todos2Data));
+                
+                log('🎉 All API tests passed!');
+                
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+                console.error('Full error:', error);
+            }
+        }
+        
+        // Run tests when page loads
+        testAPI();
+    </script>
+</body>
+</html>

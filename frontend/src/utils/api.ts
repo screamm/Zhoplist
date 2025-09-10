@@ -4,13 +4,13 @@ import { sessionManager } from './sessionManager.js';
 
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
-const API_TIMEOUT = 500; // Reduced from 5000ms to 500ms for faster fallback
+const API_TIMEOUT = 10000; // 10 seconds for reliable API calls
 
 // Create mock API instance
 const mockAPI = createMockAPI();
 
-// Check if we're in development mode and should use mock data
-const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true' || import.meta.env.DEV;
+// Check if we should use mock data (only when explicitly requested)
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true';
 
 // Track API availability to avoid unnecessary timeout delays
 let isApiAvailable: boolean | null = null;
@@ -91,7 +91,7 @@ const quickApiCheck = async (): Promise<boolean> => {
   
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 200); // Very quick check
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second health check
     
     await fetch(`${API_BASE_URL}/health`, {
       method: 'HEAD',
@@ -114,23 +114,33 @@ const tryApiOrMock = async <T>(
   apiCall: () => Promise<T>,
   mockCall: () => Promise<T>
 ): Promise<T> => {
-  if (USE_MOCK_DATA) {
-    // If we know API is unavailable, skip directly to mock
-    const apiAvailable = await quickApiCheck();
-    if (!apiAvailable) {
-      console.log('💤 API offline, using mock data directly');
-      return await mockCall();
-    }
-    
+  // Always try API first unless mock mode is explicitly enabled
+  if (!USE_MOCK_DATA) {
     try {
-      return await apiCall();
+      const result = await apiCall();
+      isApiAvailable = true;
+      return result;
     } catch (error) {
-      console.warn('API call failed, falling back to mock data:', error);
-      isApiAvailable = false; // Mark as unavailable
-      return await mockCall();
+      console.error('❌ API call failed:', error);
+      isApiAvailable = false;
+      throw error; // Don't fall back to mock in production
     }
   }
-  return await apiCall();
+  
+  // Mock mode - check API availability first
+  const apiAvailable = await quickApiCheck();
+  if (!apiAvailable) {
+    return await mockCall();
+  }
+  
+  try {
+    const result = await apiCall();
+    return result;
+  } catch (error) {
+    console.warn('⚠️ API failed in mock mode, using mock data:', error);
+    isApiAvailable = false;
+    return await mockCall();
+  }
 };
 
 export const api = {
@@ -139,7 +149,6 @@ export const api = {
     console.log('🌐 API: getTodos called');
     const result = await tryApiOrMock(
       () => apiRequest<Todo[] | APIResponse<Todo[]>>('/api/todos').then(res => {
-        console.log('🌐 API: getTodos response:', res);
         // Handle both old and new API format
         if (Array.isArray(res)) {
           return res; // Old format: direct array
@@ -151,19 +160,16 @@ export const api = {
       }),
       () => mockAPI.getTodos()
     );
-    console.log('🌐 API: getTodos final result:', result);
     return result;
   },
 
   // Create a new todo
   createTodo: async (todo: TodoFormData): Promise<Todo> => {
-    console.log('🌐 API: createTodo called with:', todo);
     const result = await tryApiOrMock(
       () => apiRequest<Todo | APIResponse<Todo>>('/api/todos', {
         method: 'POST',
         body: JSON.stringify(todo),
       }).then(res => {
-        console.log('🌐 API: createTodo response:', res);
         // Handle both old and new API format
         if ('data' in res && res.data) {
           return res.data; // New format
@@ -173,7 +179,6 @@ export const api = {
       }),
       () => mockAPI.createTodo(todo)
     );
-    console.log('🌐 API: createTodo final result:', result);
     return result;
   },
 
@@ -237,7 +242,6 @@ export const isOnline = (): boolean => {
 export const resetApiAvailability = (): void => {
   isApiAvailable = null;
   lastApiCheck = 0;
-  console.log('🔄 Reset API availability check');
 };
 
 // Listen for online/offline events
@@ -245,7 +249,6 @@ if (typeof window !== 'undefined') {
   window.addEventListener('online', resetApiAvailability);
   window.addEventListener('offline', () => {
     isApiAvailable = false;
-    console.log('📱 Device went offline');
   });
 }
 
