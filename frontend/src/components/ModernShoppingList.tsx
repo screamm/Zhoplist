@@ -5,10 +5,12 @@ import { SHOPPING_CATEGORIES, type Category } from '../types/categories.js';
 import { Sparkles } from 'lucide-react';
 import type { Todo } from '../types/index.js';
 import { AddItemModal } from './AddItemModal.js';
+import { AddCategoryModal } from './AddCategoryModal.js';
 import { generateShoppingMockData } from '../utils/shoppingMockData.js';
 import { getCategoryIcon } from './CategoryIcons.js';
 import { BottomNavbar } from './BottomNavbar.js';
 import { FlatListView } from './FlatListView.js';
+import { customCategories } from '../utils/customCategories.js';
 
 interface CategoryRowProps {
   category: Category;
@@ -209,6 +211,7 @@ export const ModernShoppingList: React.FC = () => {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [isLoadingMockData, setIsLoadingMockData] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -418,9 +421,7 @@ export const ModernShoppingList: React.FC = () => {
             
             {/* Add Category Button */}
             <div 
-              onClick={() => {
-                alert('Funktion för att lägga till ny kategori kommer snart!');
-              }}
+              onClick={() => setShowAddCategoryModal(true)}
               style={{ 
                 marginBottom: '2px',
                 padding: '16px',
@@ -440,7 +441,7 @@ export const ModernShoppingList: React.FC = () => {
                   width: '52px',
                   height: '52px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                  backgroundColor: 'rgba(255, 255, 255, 1)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -881,6 +882,22 @@ export const ModernShoppingList: React.FC = () => {
           setSelectedCategory(null);
         }}
         defaultCategory={selectedCategory || undefined}
+      />
+
+      <AddCategoryModal
+        isOpen={showAddCategoryModal}
+        onClose={() => setShowAddCategoryModal(false)}
+        onAdd={(categoryData) => {
+          // Add the new category
+          customCategories.addCategory(
+            categoryData.name,
+            categoryData.icon,
+            categoryData.color
+          );
+          
+          // Close the modal
+          setShowAddCategoryModal(false);
+        }}
       />
       
       {/* Bottom Navigation */}

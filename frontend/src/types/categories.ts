@@ -122,7 +122,31 @@ export const SHOPPING_CATEGORIES: Category[] = [
 ];
 
 export const getCategoryById = (id: string): Category | undefined => {
-  return SHOPPING_CATEGORIES.find(cat => cat.id === id);
+  // First check default categories
+  const defaultCategory = SHOPPING_CATEGORIES.find(cat => cat.id === id);
+  if (defaultCategory) return defaultCategory;
+  
+  // Then check custom categories
+  try {
+    const { customCategories } = require('../utils/customCategories');
+    const customCategory = customCategories.findCategory(id);
+    if (customCategory) {
+      // Convert CustomCategory to Category format
+      return {
+        id: customCategory.id,
+        name: customCategory.name,
+        nameKey: customCategory.nameKey,
+        icon: customCategory.icon,
+        color: customCategory.color,
+        bgColor: customCategory.bgColor,
+        order: customCategory.order
+      };
+    }
+  } catch (error) {
+    // Ignore error if customCategories not available
+  }
+  
+  return undefined;
 };
 
 export const getCategoryColor = (categoryId: string): string => {

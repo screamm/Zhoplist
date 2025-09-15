@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus } from 'lucide-react';
-import { SHOPPING_CATEGORIES } from '../types/categories';
+import { SHOPPING_CATEGORIES, type Category } from '../types/categories';
 import { getCategoryIcon } from './CategoryIcons';
 import { useLanguage } from '../context/LanguageContext';
+import { AddCategoryModal } from './AddCategoryModal';
+import { customCategories, type CustomCategory } from '../utils/customCategories';
 
 interface CategorySelectionModalProps {
   isOpen: boolean;
@@ -20,14 +22,29 @@ export const CategorySelectionModal: React.FC<CategorySelectionModalProps> = ({
   availableCategories
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [customCategoryList, setCustomCategoryList] = useState<CustomCategory[]>([]);
   const { t } = useLanguage();
+
+  // Load custom categories when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setCustomCategoryList(customCategories.getAllCategories());
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
+  // Combine default and custom categories
+  const allCategories: (Category | CustomCategory)[] = [
+    ...SHOPPING_CATEGORIES,
+    ...customCategoryList
+  ];
+
   // Use provided categories or all categories
   const categoriesToShow = availableCategories 
-    ? SHOPPING_CATEGORIES.filter(cat => availableCategories.includes(cat.id))
-    : SHOPPING_CATEGORIES;
+    ? allCategories.filter(cat => availableCategories.includes(cat.id))
+    : allCategories;
 
   const handleSelect = () => {
     if (selectedCategory) {
@@ -107,10 +124,7 @@ export const CategorySelectionModal: React.FC<CategorySelectionModalProps> = ({
 
           {/* Add New Category Button */}
           <button
-            onClick={() => {
-              // TODO: Implement add new category functionality
-              console.log('Add new category clicked');
-            }}
+            onClick={() => setShowAddCategoryModal(true)}
             className="w-full p-3 rounded-xl border-2 border-dashed border-gray-600 hover:border-gray-500 bg-gray-800/30 hover:bg-gray-800/50 transition-all duration-200 touch-target flex items-center justify-center space-x-2"
           >
             <Plus className="w-4 h-4 text-gray-400" />
@@ -135,6 +149,29 @@ export const CategorySelectionModal: React.FC<CategorySelectionModalProps> = ({
           </button>
         </div>
       </div>
+      
+      {/* Add Category Modal */}
+      <AddCategoryModal
+        isOpen={showAddCategoryModal}
+        onClose={() => setShowAddCategoryModal(false)}
+        onAdd={(categoryData) => {
+          // Add the new category
+          const newCategory = customCategories.addCategory(
+            categoryData.name,
+            categoryData.icon,
+            categoryData.color
+          );
+          
+          // Refresh the custom categories list
+          setCustomCategoryList(customCategories.getAllCategories());
+          
+          // Auto-select the new category
+          setSelectedCategory(newCategory.id);
+          
+          // Close the add category modal
+          setShowAddCategoryModal(false);
+        }}
+      />
     </div>
   );
 };

@@ -59,6 +59,16 @@ interface Translations {
   // Category Selection Modal
   whichCategory: string;
   addNewCategory: string;
+  
+  // Add Category Modal
+  createCategory: string;
+  categoryName: string;
+  chooseIcon: string;
+  chooseColor: string;
+  preview: string;
+  yourCategory: string;
+  createCategoryButton: string;
+  creating: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -119,6 +129,16 @@ const translations: Record<Language, Translations> = {
     // Category Selection Modal
     whichCategory: 'Vilken kategori hör "{item}" till?',
     addNewCategory: 'Lägg till ny kategori',
+    
+    // Add Category Modal
+    createCategory: 'Skapa kategori',
+    categoryName: 'Kategorinamn',
+    chooseIcon: 'Välj ikon',
+    chooseColor: 'Välj färg',
+    preview: 'Förhandsvisning',
+    yourCategory: 'Din kategori',
+    createCategoryButton: 'Skapa kategori',
+    creating: 'Skapar',
   },
   en: {
     // Header
@@ -177,6 +197,16 @@ const translations: Record<Language, Translations> = {
     // Category Selection Modal
     whichCategory: 'Which category does "{item}" belong to?',
     addNewCategory: 'Add new category',
+    
+    // Add Category Modal
+    createCategory: 'Create category',
+    categoryName: 'Category name',
+    chooseIcon: 'Choose icon',
+    chooseColor: 'Choose color',
+    preview: 'Preview',
+    yourCategory: 'Your category',
+    createCategoryButton: 'Create category',
+    creating: 'Creating',
   },
 };
 
