@@ -25,6 +25,7 @@ class CustomCategoriesManager {
     // Generate unique ID
     const id = `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
+    
     // Create category object
     const category: CustomCategory = {
       id,
@@ -37,6 +38,7 @@ class CustomCategoriesManager {
       isCustom: true,
       createdAt: Date.now()
     };
+    
 
     // Check for duplicates
     const existingIndex = this.categories.findIndex(c => 

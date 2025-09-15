@@ -134,8 +134,19 @@ export const PersonalIcon: React.FC<{ color?: string }> = ({ color = 'white' }) 
   </svg>
 );
 
+import { CustomIcon as BaseCustomIcon } from './AddCategoryModal';
+import { type CustomCategory } from '../utils/customCategories';
+
+// Wrapper för CustomIcon med 28x28 storlek för kategorivy
+const CustomIcon: React.FC<{ type: string; color: string }> = ({ type, color }) => (
+  <div style={{ transform: 'scale(1.16)' }}>
+    <BaseCustomIcon type={type} color={color} />
+  </div>
+);
+
 // Get icon component by category ID
-export const getCategoryIcon = (categoryId: string, color: string = 'white') => {
+export const getCategoryIcon = (categoryId: string, color: string = 'white', customCategories?: CustomCategory[]) => {
+  // Check if it's a default category
   switch (categoryId) {
     case 'bread':
       return <BreadIcon color={color} />;
@@ -162,6 +173,15 @@ export const getCategoryIcon = (categoryId: string, color: string = 'white') => 
     case 'personal':
       return <PersonalIcon color={color} />;
     default:
-      return null;
+      // Check if it's a custom category with custom icon
+      if (categoryId.startsWith('custom_') && customCategories) {
+        const customCategory = customCategories.find(cat => cat.id === categoryId);
+        if (customCategory) {
+          return <CustomIcon type={customCategory.icon} color={color} />;
+        }
+      }
+      
+      // Default fallback
+      return <CustomIcon type="box" color={color} />;
   }
 };

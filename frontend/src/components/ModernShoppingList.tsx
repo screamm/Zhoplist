@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTodo } from '../context/TodoContext.js';
 import { useLanguage } from '../context/LanguageContext.js';
 import { SHOPPING_CATEGORIES, type Category } from '../types/categories.js';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Settings } from 'lucide-react';
 import type { Todo } from '../types/index.js';
 import { AddItemModal } from './AddItemModal.js';
 import { AddCategoryModal } from './AddCategoryModal.js';
+import { EditCategoryModal } from './EditCategoryModal.js';
 import { generateShoppingMockData } from '../utils/shoppingMockData.js';
 import { getCategoryIcon } from './CategoryIcons.js';
 import { BottomNavbar } from './BottomNavbar.js';
 import { FlatListView } from './FlatListView.js';
-import { customCategories } from '../utils/customCategories.js';
+import { customCategories, type CustomCategory } from '../utils/customCategories.js';
 
 interface CategoryRowProps {
   category: Category;
@@ -18,6 +19,8 @@ interface CategoryRowProps {
   onCategoryClick: () => void;
   isExpanded: boolean;
   onToggleItem: (itemId: string) => void;
+  customCategoryList: CustomCategory[];
+  onEditCategory?: (categoryId: string) => void;
 }
 
 const CategoryRow: React.FC<CategoryRowProps> = ({ 
@@ -25,9 +28,14 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
   items, 
   onCategoryClick, 
   isExpanded,
-  onToggleItem
+  onToggleItem,
+  customCategoryList,
+  onEditCategory
 }) => {
   const { t } = useLanguage();
+  
+  // Check if this is a custom category
+  const isCustomCategory = category.id.startsWith('custom_');
   
   return (
     <div style={{ 
@@ -99,7 +107,7 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
             zIndex: 3
           }}
         >
-          {getCategoryIcon(category.id, 'white')}
+          {getCategoryIcon(category.id, 'white', customCategoryList)}
         </div>
         
         {/* Category Name */}
@@ -111,8 +119,39 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
             margin: 0,
             letterSpacing: '0.2px',
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}>{t[category.nameKey as keyof typeof t]}</h3>
+          }}>{t[category.nameKey as keyof typeof t] || category.name}</h3>
         </div>
+        
+        {/* Edit Button for Custom Categories */}
+        {isCustomCategory && isExpanded && onEditCategory && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEditCategory(category.id);
+            }}
+            style={{
+              background: 'rgba(255, 255, 255, 0.15)',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '8px',
+              marginRight: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+              zIndex: 3
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+            }}
+          >
+            <Settings size={16} color="white" />
+          </button>
+        )}
       </div>
 
       {/* Expanded Items with Animation */}
@@ -212,7 +251,15 @@ export const ModernShoppingList: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CustomCategory | null>(null);
+  const [customCategoryList, setCustomCategoryList] = useState<CustomCategory[]>([]);
   const [isLoadingMockData, setIsLoadingMockData] = useState(false);
+
+  // Load custom categories on component mount
+  useEffect(() => {
+    setCustomCategoryList(customCategories.getAllCategories());
+  }, []);
   const [showMenu, setShowMenu] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showOpenDialog, setShowOpenDialog] = useState(false);
@@ -242,7 +289,31 @@ export const ModernShoppingList: React.FC = () => {
     setExpandedCategories(newExpanded);
   };
 
+  const handleEditCategory = (categoryId: string) => {
+    const category = customCategoryList.find(cat => cat.id === categoryId);
+    if (category) {
+      setEditingCategory(category);
+      setShowEditCategoryModal(true);
+    }
+  };
 
+  const handleUpdateCategory = (updates: { name: string; icon: string; color: string }) => {
+    if (editingCategory) {
+      customCategories.updateCategory(editingCategory.id, updates);
+      setCustomCategoryList(customCategories.getAllCategories());
+      setShowEditCategoryModal(false);
+      setEditingCategory(null);
+    }
+  };
+
+  const handleDeleteCategory = () => {
+    if (editingCategory) {
+      customCategories.removeCategory(editingCategory.id);
+      setCustomCategoryList(customCategories.getAllCategories());
+      setShowEditCategoryModal(false);
+      setEditingCategory(null);
+    }
+  };
 
   const getItemsByCategory = (categoryId: string) => {
     return filteredTodos.filter(todo => todo.category === categoryId);
@@ -404,7 +475,7 @@ export const ModernShoppingList: React.FC = () => {
             paddingBottom: '140px',
             WebkitOverflowScrolling: 'touch'
           }}>
-            {SHOPPING_CATEGORIES.map(category => {
+            {[...SHOPPING_CATEGORIES, ...customCategoryList].map(category => {
               const items = getItemsByCategory(category.id);
               
               return (
@@ -415,6 +486,8 @@ export const ModernShoppingList: React.FC = () => {
                   isExpanded={expandedCategories.has(category.id)}
                   onCategoryClick={() => toggleCategory(category.id)}
                   onToggleItem={toggleTodo}
+                  customCategoryList={customCategoryList}
+                  onEditCategory={handleEditCategory}
                 />
               );
             })}
@@ -895,9 +968,23 @@ export const ModernShoppingList: React.FC = () => {
             categoryData.color
           );
           
+          // Update the custom categories list
+          setCustomCategoryList(customCategories.getAllCategories());
+          
           // Close the modal
           setShowAddCategoryModal(false);
         }}
+      />
+
+      <EditCategoryModal
+        isOpen={showEditCategoryModal}
+        onClose={() => {
+          setShowEditCategoryModal(false);
+          setEditingCategory(null);
+        }}
+        onUpdate={handleUpdateCategory}
+        onDelete={handleDeleteCategory}
+        category={editingCategory}
       />
       
       {/* Bottom Navigation */}
