@@ -4,6 +4,7 @@ import { TodoProvider } from './context/TodoContext';
 import { LanguageProvider } from './context/LanguageContext';
 import './App.css';
 import { ModernShoppingList } from './components/ModernShoppingList';
+import { SplashScreen } from './components/SplashScreen';
 import { EditTodoModal } from './components/EditTodoModal';
 import { useTodo } from './context/TodoContext';
 import { 
@@ -19,6 +20,7 @@ import {
 function AppContent() {
   const { state, dispatch } = useTodo();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [showSplash, setShowSplash] = useState(true);
   
   useEffect(() => {
     // Registrera Service Worker
@@ -88,6 +90,16 @@ function AppContent() {
       window.removeEventListener('offline', handleOffline);
     };
   }, [dispatch]);
+
+  // Show splash screen on first load
+  if (showSplash) {
+    return (
+      <SplashScreen 
+        onFinish={() => setShowSplash(false)}
+        duration={2500}
+      />
+    );
+  }
   
   return (
     <div className="min-h-screen">
