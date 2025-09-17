@@ -276,7 +276,8 @@ export const ModernShoppingList: React.FC = () => {
   const [saveListName, setSaveListName] = useState('');
   const [savedLists, setSavedLists] = useState<Array<{id: string, name: string, date: string, todos: Todo[]}>>([]);
   const [currentListName, setCurrentListName] = useState('');
-  
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   // Debug logging
   
   // Load saved lists on component mount
@@ -814,6 +815,59 @@ export const ModernShoppingList: React.FC = () => {
                   </div>
                 </div>
               </button>
+
+              {/* Delete Lists - Only show if there are saved lists */}
+              {savedLists.length > 0 && (
+                <button
+                  onClick={() => {
+                    setShowDeleteDialog(true);
+                    setShowMenu(false);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '16px',
+                    margin: '0 0 8px 0',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '16px',
+                    color: 'white',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    fontSize: '15px',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    transition: 'all 0.2s ease',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <span style={{ fontSize: '18px', color: '#ef4444' }}>🗑️</span>
+                  </div>
+                  <div>
+                    <div>Ta bort listor</div>
+                    <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
+                      Hantera sparade listor
+                    </div>
+                  </div>
+                </button>
+              )}
             </div>
 
             <div style={{
@@ -1122,7 +1176,7 @@ export const ModernShoppingList: React.FC = () => {
                 ×
               </button>
             </div>
-            
+
             {savedLists.length === 0 ? (
               <p style={{
                 color: 'rgba(255, 255, 255, 0.6)',
@@ -1174,7 +1228,8 @@ export const ModernShoppingList: React.FC = () => {
                       }}
                       style={{
                         background: 'none',
-                            color: 'rgba(255, 255, 255, 0.5)',
+                        border: 'none',
+                        color: 'rgba(255, 255, 255, 0.5)',
                         fontSize: '14px',
                         cursor: 'pointer',
                         padding: '4px'
@@ -1188,6 +1243,173 @@ export const ModernShoppingList: React.FC = () => {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Lists Dialog */}
+      {showDeleteDialog && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1100
+        }}>
+          <div style={{
+            backgroundColor: '#1e293b',
+            borderRadius: '12px',
+            padding: '24px',
+            width: '350px',
+            maxWidth: '90vw',
+            maxHeight: '80vh',
+            overflow: 'auto'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px'
+            }}>
+              <h3 style={{
+                color: 'white',
+                fontSize: '18px',
+                fontWeight: '600',
+                margin: 0
+              }}>
+                Ta bort listor
+              </h3>
+              <button
+                onClick={() => setShowDeleteDialog(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: '20px',
+                  cursor: 'pointer'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.7)',
+              fontSize: '14px',
+              marginBottom: '16px',
+              lineHeight: '1.4'
+            }}>
+              Klicka på papperskorgen för att ta bort en lista permanent.
+            </p>
+
+            {savedLists.length === 0 ? (
+              <p style={{
+                color: 'rgba(255, 255, 255, 0.6)',
+                fontSize: '14px',
+                textAlign: 'center',
+                margin: '20px 0'
+              }}>
+                Inga sparade listor att ta bort
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {savedLists.map((list) => (
+                  <div
+                    key={list.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px',
+                      borderRadius: '6px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}
+                  >
+                    <div>
+                      <div style={{
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        marginBottom: '2px'
+                      }}>
+                        {list.name}
+                      </div>
+                      <div style={{
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        fontSize: '12px'
+                      }}>
+                        {new Date(list.date).toLocaleDateString()} • {list.todos.length} items
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        deleteList(list.id);
+                        if (savedLists.length === 1) {
+                          setShowDeleteDialog(false);
+                        }
+                      }}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        borderRadius: '8px',
+                        color: '#ef4444',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        padding: '8px',
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginTop: '20px'
+            }}>
+              <button
+                onClick={() => setShowDeleteDialog(false)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: 'white',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                }}
+              >
+                Stäng
+              </button>
+            </div>
           </div>
         </div>
       )}
