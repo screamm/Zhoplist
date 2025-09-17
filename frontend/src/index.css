@@ -19,7 +19,7 @@
     @apply antialiased;
     margin: 0;
     padding: 0;
-    background: #001122; /* Matchar appens gradient startfärg för att undvika flash */
+    background: linear-gradient(180deg, #001122 0%, #1e3a8a 100%); /* Exakt samma gradient som ModernShoppingList */
     /* Performance optimizations */
     will-change: transform;
     transform: translateZ(0);
