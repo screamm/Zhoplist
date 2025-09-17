@@ -3,7 +3,7 @@ import { createMockAPI } from './mockData.js';
 import { sessionManager } from './sessionManager.js';
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8787';
 const API_TIMEOUT = 10000; // 10 seconds for reliable API calls
 
 // Create mock API instance

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Palette, Hash, Trash2 } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
+// import { useLanguage } from '../context/LanguageContext';
 import { CustomIcon } from './AddCategoryModal';
 import type { CustomCategory } from '../utils/customCategories';
 
@@ -31,7 +31,7 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
   onDelete,
   category
 }) => {
-  const { t } = useLanguage();
+  // const { t } = useLanguage();
   const [name, setName] = useState('');
   const [selectedColor, setSelectedColor] = useState(DEFAULT_COLORS[0]);
   const [selectedIcon, setSelectedIcon] = useState(ICON_TYPES[0]);

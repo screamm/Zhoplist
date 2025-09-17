@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTodo } from '../context/TodoContext.js';
 import { useLanguage } from '../context/LanguageContext.js';
-import { SHOPPING_CATEGORIES, type Category } from '../types/categories.js';
-import { Sparkles, Settings } from 'lucide-react';
+import type { Category } from '../types/categories.js';
+import { Sparkles, Settings, Save, FolderOpen, FileText, Languages } from 'lucide-react';
 import type { Todo } from '../types/index.js';
 import { AddItemModal } from './AddItemModal.js';
 import { AddCategoryModal } from './AddCategoryModal.js';
@@ -12,6 +12,7 @@ import { getCategoryIcon } from './CategoryIcons.js';
 import { BottomNavbar } from './BottomNavbar.js';
 import { FlatListView } from './FlatListView.js';
 import { customCategories, type CustomCategory } from '../utils/customCategories.js';
+import { allCategoriesManager, type EditableCategory } from '../utils/allCategoriesManager.js';
 
 interface CategoryRowProps {
   category: Category;
@@ -34,8 +35,6 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
 }) => {
   const { t } = useLanguage();
   
-  // Check if this is a custom category
-  const isCustomCategory = category.id.startsWith('custom_');
   
   return (
     <div style={{ 
@@ -122,8 +121,8 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
           }}>{t[category.nameKey as keyof typeof t] || category.name}</h3>
         </div>
         
-        {/* Edit Button for Custom Categories */}
-        {isCustomCategory && isExpanded && onEditCategory && (
+        {/* Edit Button for All Categories */}
+        {isExpanded && onEditCategory && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -254,11 +253,13 @@ export const ModernShoppingList: React.FC = () => {
   const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CustomCategory | null>(null);
   const [customCategoryList, setCustomCategoryList] = useState<CustomCategory[]>([]);
+  const [allCategories, setAllCategories] = useState<EditableCategory[]>([]);
   const [isLoadingMockData, setIsLoadingMockData] = useState(false);
 
-  // Load custom categories on component mount
+  // Load all categories on component mount
   useEffect(() => {
     setCustomCategoryList(customCategories.getAllCategories());
+    setAllCategories(allCategoriesManager.getAllCategories());
   }, []);
   const [showMenu, setShowMenu] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -290,17 +291,31 @@ export const ModernShoppingList: React.FC = () => {
   };
 
   const handleEditCategory = (categoryId: string) => {
-    const category = customCategoryList.find(cat => cat.id === categoryId);
+    const category = allCategories.find(cat => cat.id === categoryId);
     if (category) {
-      setEditingCategory(category);
+      // Convert EditableCategory to CustomCategory format for the modal
+      const editableCategory: CustomCategory = {
+        id: category.id,
+        name: category.name,
+        nameKey: category.id,
+        icon: category.icon,
+        color: category.color,
+        bgColor: category.bgColor,
+        order: category.order,
+        isCustom: category.isCustom as true,
+        createdAt: category.createdAt
+      };
+      setEditingCategory(editableCategory);
       setShowEditCategoryModal(true);
     }
   };
 
+
   const handleUpdateCategory = (updates: { name: string; icon: string; color: string }) => {
     if (editingCategory) {
-      customCategories.updateCategory(editingCategory.id, updates);
+      allCategoriesManager.updateCategory(editingCategory.id, updates);
       setCustomCategoryList(customCategories.getAllCategories());
+      setAllCategories(allCategoriesManager.getAllCategories());
       setShowEditCategoryModal(false);
       setEditingCategory(null);
     }
@@ -308,8 +323,9 @@ export const ModernShoppingList: React.FC = () => {
 
   const handleDeleteCategory = () => {
     if (editingCategory) {
-      customCategories.removeCategory(editingCategory.id);
+      allCategoriesManager.removeCategory(editingCategory.id);
       setCustomCategoryList(customCategories.getAllCategories());
+      setAllCategories(allCategoriesManager.getAllCategories());
       setShowEditCategoryModal(false);
       setEditingCategory(null);
     }
@@ -317,6 +333,11 @@ export const ModernShoppingList: React.FC = () => {
 
   const getItemsByCategory = (categoryId: string) => {
     return filteredTodos.filter(todo => todo.category === categoryId);
+  };
+
+  // Hämta items utan kategori (tomma eller null)
+  const getItemsWithoutCategory = () => {
+    return filteredTodos.filter(todo => !todo.category || todo.category.trim() === '');
   };
 
   const loadMockData = async () => {
@@ -407,8 +428,6 @@ export const ModernShoppingList: React.FC = () => {
     loadSavedLists();
   }, []);
 
-  // Get active (uncrossed) todos for flat view - only show uncompleted items
-  const activeTodos = filteredTodos.filter(todo => !todo.completed);
 
   return (
     <div style={{ 
@@ -475,9 +494,9 @@ export const ModernShoppingList: React.FC = () => {
             paddingBottom: '140px',
             WebkitOverflowScrolling: 'touch'
           }}>
-            {[...SHOPPING_CATEGORIES, ...customCategoryList].map(category => {
+            {allCategories.map(category => {
               const items = getItemsByCategory(category.id);
-              
+
               return (
                 <CategoryRow
                   key={category.id}
@@ -491,7 +510,37 @@ export const ModernShoppingList: React.FC = () => {
                 />
               );
             })}
-            
+
+            {/* Items utan kategori */}
+            {(() => {
+              const itemsWithoutCategory = getItemsWithoutCategory();
+              if (itemsWithoutCategory.length > 0) {
+                // Skapa en falsk kategori för items utan kategori
+                const uncategorizedCategory: Category = {
+                  id: 'uncategorized',
+                  name: 'Utan kategori',
+                  nameKey: 'uncategorized',
+                  icon: 'list',
+                  color: '#6B7280',
+                  bgColor: 'bg-gray-500',
+                  order: 999
+                };
+
+                return (
+                  <CategoryRow
+                    key="uncategorized"
+                    category={uncategorizedCategory}
+                    items={itemsWithoutCategory}
+                    isExpanded={expandedCategories.has('uncategorized')}
+                    onCategoryClick={() => toggleCategory('uncategorized')}
+                    onToggleItem={toggleTodo}
+                    customCategoryList={customCategoryList}
+                  />
+                );
+              }
+              return null;
+            })()}
+
             {/* Add Category Button */}
             <div 
               onClick={() => setShowAddCategoryModal(true)}
@@ -546,8 +595,8 @@ export const ModernShoppingList: React.FC = () => {
             </div>
           </div>
         ) : (
-          <FlatListView 
-            items={activeTodos} 
+          <FlatListView
+            items={filteredTodos}
             onToggleItem={toggleTodo}
           />
         )}
@@ -561,138 +610,293 @@ export const ModernShoppingList: React.FC = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backgroundColor: 'rgba(0, 17, 34, 0.8)',
+          backdropFilter: 'blur(8px)',
           zIndex: 1000
         }} onClick={() => setShowMenu(false)}>
-          <div 
+          <div
             style={{
               position: 'absolute',
-              top: '60px',
-              left: '16px',
-              backgroundColor: '#1e293b',
-              borderRadius: '12px',
-              padding: '12px 0',
-              minWidth: '200px',
-              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
+              top: '80px',
+              left: '20px',
+              right: '20px',
+              maxWidth: '320px',
+              backgroundColor: 'rgba(30, 41, 59, 0.95)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '24px',
+              padding: '24px',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.08)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Save List */}
-            <button
-              onClick={() => {
-                setShowSaveDialog(true);
-                setShowMenu(false);
-              }}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                border: 'none',
-                backgroundColor: 'transparent',
-                color: 'rgba(255, 255, 255, 0.9)',
-                textAlign: 'left',
-                cursor: 'pointer',
+            {/* Menu Header */}
+            <div style={{
+              marginBottom: '20px',
+              paddingBottom: '16px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+            }}>
+              <h3 style={{
+                margin: 0,
+                fontSize: '18px',
+                fontWeight: '600',
+                color: 'white',
+                letterSpacing: '-0.02em'
+              }}>
+                Inställningar
+              </h3>
+              <p style={{
+                margin: '4px 0 0',
                 fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            >
-              💾 {t.saveList}
-            </button>
-            
-            {/* Open List */}
-            <button
-              onClick={() => {
-                setShowOpenDialog(true);
-                setShowMenu(false);
-              }}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                border: 'none',
-                backgroundColor: 'transparent',
-                color: 'rgba(255, 255, 255, 0.9)',
-                textAlign: 'left',
-                cursor: 'pointer',
-                fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            >
-              📂 {t.openList}
-            </button>
-            
-            {/* New List */}
-            <button
-              onClick={createNewList}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                border: 'none',
-                backgroundColor: 'transparent',
-                color: 'rgba(255, 255, 255, 0.9)',
-                textAlign: 'left',
-                cursor: 'pointer',
-                fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            >
-              📝 {t.newList}
-            </button>
-            
+                color: 'rgba(255, 255, 255, 0.6)'
+              }}>
+                Hantera listor och språk
+              </p>
+            </div>
+
+            {/* Menu Items */}
+            <div style={{ marginBottom: '20px' }}>
+              {/* Save List */}
+              <button
+                onClick={() => {
+                  setShowSaveDialog(true);
+                  setShowMenu(false);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  margin: '0 0 8px 0',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '16px',
+                  color: 'white',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  transition: 'all 0.2s ease',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Save style={{ width: '18px', height: '18px', color: '#22c55e' }} />
+                </div>
+                <div>
+                  <div>{t.saveList}</div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
+                    Spara aktuell lista
+                  </div>
+                </div>
+              </button>
+
+              {/* Open List */}
+              <button
+                onClick={() => {
+                  setShowOpenDialog(true);
+                  setShowMenu(false);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  margin: '0 0 8px 0',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '16px',
+                  color: 'white',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  transition: 'all 0.2s ease',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <FolderOpen style={{ width: '18px', height: '18px', color: '#3b82f6' }} />
+                </div>
+                <div>
+                  <div>{t.openList}</div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
+                    Öppna sparad lista
+                  </div>
+                </div>
+              </button>
+
+              {/* New List */}
+              <button
+                onClick={createNewList}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  margin: '0 0 8px 0',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '16px',
+                  color: 'white',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  transition: 'all 0.2s ease',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <FileText style={{ width: '18px', height: '18px', color: '#a855f7' }} />
+                </div>
+                <div>
+                  <div>{t.newList}</div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
+                    Skapa ny tom lista
+                  </div>
+                </div>
+              </button>
+            </div>
+
             <div style={{
               height: '1px',
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
               margin: '8px 16px'
             }} />
             
-            {/* Settings */}
-            <div style={{ padding: '8px 16px' }}>
+            {/* Language Selection */}
+            <div style={{
+              padding: '16px 0 0',
+              borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+            }}>
               <div style={{
-                color: 'rgba(255, 255, 255, 0.7)',
-                fontSize: '12px',
+                color: 'rgba(255, 255, 255, 0.9)',
+                fontSize: '15px',
                 fontWeight: '500',
-                marginBottom: '8px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
+                marginBottom: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
               }}>
-                {t.settings}
-              </div>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  fontSize: '13px',
-                  display: 'block',
-                  marginBottom: '4px'
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  backgroundColor: 'rgba(251, 146, 60, 0.2)',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}>
-                  {t.language}
-                </label>
-                <select
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value as 'sv' | 'en')}
+                  <Languages style={{ width: '12px', height: '12px', color: '#fb923c' }} />
+                </div>
+                {t.language}
+              </div>
+
+              {/* Language Buttons */}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                <button
+                  onClick={() => setLanguage('sv')}
                   style={{
-                    width: '100%',
-                    padding: '6px 8px',
-                    borderRadius: '4px',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    backgroundColor: '#334155',
-                    color: 'white',
-                    fontSize: '12px'
+                    flex: 1,
+                    padding: '12px 16px',
+                    backgroundColor: language === 'sv' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '12px',
+                    color: language === 'sv' ? '#22c55e' : 'rgba(255, 255, 255, 0.7)',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    border: language === 'sv' ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (language !== 'sv') {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (language !== 'sv') {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    }
                   }}
                 >
-                  <option value="sv">Svenska</option>
-                  <option value="en">English</option>
-                </select>
+                  Svenska
+                </button>
+                <button
+                  onClick={() => setLanguage('en')}
+                  style={{
+                    flex: 1,
+                    padding: '12px 16px',
+                    backgroundColor: language === 'en' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '12px',
+                    color: language === 'en' ? '#22c55e' : 'rgba(255, 255, 255, 0.7)',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    border: language === 'en' ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (language !== 'en') {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (language !== 'en') {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    }
+                  }}
+                >
+                  English
+                </button>
               </div>
               
               {filteredTodos.length === 0 && (
@@ -704,23 +908,55 @@ export const ModernShoppingList: React.FC = () => {
                   disabled={isLoadingMockData}
                   style={{
                     width: '100%',
-                    padding: '8px',
-                    borderRadius: '4px',
-                    border: 'none',
-                    backgroundColor: '#3b82f6',
-                    color: 'white',
-                    fontSize: '12px',
-                    fontWeight: '500',
+                    padding: '16px',
+                    margin: '8px 0 0',
+                    backgroundColor: isLoadingMockData ? 'rgba(255, 255, 255, 0.03)' : 'rgba(59, 130, 246, 0.15)',
+                    borderRadius: '16px',
+                    color: isLoadingMockData ? 'rgba(255, 255, 255, 0.4)' : '#3b82f6',
+                    textAlign: 'left',
                     cursor: isLoadingMockData ? 'not-allowed' : 'pointer',
-                    opacity: isLoadingMockData ? 0.5 : 1,
+                    fontSize: '15px',
+                    fontWeight: '500',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px'
+                    gap: '12px',
+                    transition: 'all 0.2s ease',
+                    border: '1px solid ' + (isLoadingMockData ? 'rgba(255, 255, 255, 0.05)' : 'rgba(59, 130, 246, 0.3)')
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoadingMockData) {
+                      e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.25)';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isLoadingMockData) {
+                      e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.15)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }
                   }}
                 >
-                  <Sparkles style={{ width: '14px', height: '14px' }} />
-                  {t.loadSampleData}
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    backgroundColor: isLoadingMockData ? 'rgba(255, 255, 255, 0.05)' : 'rgba(59, 130, 246, 0.2)',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Sparkles style={{
+                      width: '18px',
+                      height: '18px',
+                      color: isLoadingMockData ? 'rgba(255, 255, 255, 0.3)' : '#3b82f6'
+                    }} />
+                  </div>
+                  <div>
+                    <div>{t.loadSampleData}</div>
+                    <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
+                      {isLoadingMockData ? 'Laddar...' : 'Lägg till exempelvaror'}
+                    </div>
+                  </div>
                 </button>
               )}
             </div>
@@ -929,8 +1165,7 @@ export const ModernShoppingList: React.FC = () => {
                       }}
                       style={{
                         background: 'none',
-                        border: 'none',
-                        color: 'rgba(255, 255, 255, 0.5)',
+                            color: 'rgba(255, 255, 255, 0.5)',
                         fontSize: '14px',
                         cursor: 'pointer',
                         padding: '4px'
@@ -967,10 +1202,11 @@ export const ModernShoppingList: React.FC = () => {
             categoryData.icon,
             categoryData.color
           );
-          
-          // Update the custom categories list
+
+          // Update both category lists
           setCustomCategoryList(customCategories.getAllCategories());
-          
+          setAllCategories(allCategoriesManager.getAllCategories());
+
           // Close the modal
           setShowAddCategoryModal(false);
         }}
@@ -984,8 +1220,9 @@ export const ModernShoppingList: React.FC = () => {
         }}
         onUpdate={handleUpdateCategory}
         onDelete={handleDeleteCategory}
-        category={editingCategory}
+        category={editingCategory || undefined}
       />
+
       
       {/* Bottom Navigation */}
       <BottomNavbar

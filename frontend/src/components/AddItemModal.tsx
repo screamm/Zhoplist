@@ -2,12 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTodo } from '../context/TodoContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getCategoryById, SHOPPING_CATEGORIES } from '../types/categories';
-import { X, Plus, ShoppingBag, Minus } from 'lucide-react';
+import { X, Plus, ShoppingBag, Minus, Edit3 } from 'lucide-react';
 import SmartAutocomplete from './SmartAutocomplete';
 import { type Suggestion } from '../utils/smartAutocomplete';
 import { getCategoryIcon } from './CategoryIcons';
 import { CategorySelectionModal } from './CategorySelectionModal';
 import { customProducts } from '../utils/customProducts';
+import { allCategoriesManager } from '../utils/allCategoriesManager';
 
 interface AddItemModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
   const [title, setTitle] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [category, setCategory] = useState(defaultCategory || '');
+  const [detectedCategory, setDetectedCategory] = useState<string>(''); // Kategori som detekterades från produktdatabasen
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [pendingItem, setPendingItem] = useState<{title: string, quantity: number} | null>(null);
@@ -38,15 +40,13 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
     setTitle(suggestion.name);
     // Automatically set category based on suggestion if available
     if (suggestion.category) {
-      // Fish products that should be categorized as fish
-      const fishProducts = ['lax', 'torsk', 'sej', 'räkor', 'tonfisk', 'fiskpinnar', 'kräftor', 'sill'];
-      const isFish = fishProducts.some(fish => suggestion.name.toLowerCase().includes(fish));
-      
       // Map swedish category to app category
       const categoryMapping: { [key: string]: string } = {
         'mejeri': 'dairy',
-        'frukt-gront': 'vegetables',
-        'kott-fisk': isFish ? 'fish' : 'meat',
+        'frukt': 'frukt',
+        'vegetables': 'vegetables',
+        'meat': 'meat',
+        'fish': 'fish',
         'skafferi': 'pantry',
         'brod': 'bread',
         'frys': 'frozen',
@@ -57,8 +57,38 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
         'husdjur': 'personal',
         'ovrigt': 'pantry'
       };
-      setCategory(categoryMapping[suggestion.category] || suggestion.category);
+      const mappedCategory = categoryMapping[suggestion.category] || suggestion.category;
+      setCategory(mappedCategory);
+      setDetectedCategory(mappedCategory);
     }
+  };
+
+  // Funktion för att hantera kategorival
+  const handleCategoryChange = (newCategoryId: string) => {
+    setCategory(newCategoryId);
+  };
+
+  // Hämta aktuell kategorisektion
+  const currentCategoryData = category ? allCategoriesManager.getCategory(category) : null;
+
+  // Funktion för att få översatt kategorinamn
+  const getCategoryName = (categoryId: string): string => {
+    const categoryMapping: { [key: string]: keyof typeof t } = {
+      'dairy': 'dairyProducts',
+      'frukt': 'fruits',
+      'vegetables': 'vegetables',
+      'meat': 'meat',
+      'fish': 'fish',
+      'bread': 'breadsAndPastries',
+      'pantry': 'pantry',
+      'frozen': 'frozen',
+      'drinks': 'drinks',
+      'snacks': 'snacks',
+      'household': 'household',
+      'personal': 'personalCare'
+    };
+    const translationKey = categoryMapping[categoryId];
+    return translationKey ? t[translationKey] : (currentCategoryData?.name || categoryId);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,8 +121,10 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
           if (product) {
             const categoryMapping: { [key: string]: string } = {
               'mejeri': 'dairy',
-              'frukt-gront': 'vegetables',
-              'kott-fisk': 'meat',
+              'frukt': 'frukt',
+              'vegetables': 'vegetables',
+              'meat': 'meat',
+              'fish': 'fish',
               'skafferi': 'pantry',
               'brod': 'bread',
               'frys': 'frozen',
@@ -173,6 +205,12 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
     setShowCategoryModal(false);
     setPendingItem(null);
     setIsSubmitting(false);
+  };
+
+  // Hantera kategorival när användaren ändrar kategori manuellt
+  const handleManualCategorySelect = (selectedCategoryId: string) => {
+    setCategory(selectedCategoryId);
+    setShowCategoryModal(false);
   };
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -278,6 +316,51 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
             </div>
           </div>
 
+          {/* Kategori-sektion */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-300">
+              Kategori
+            </label>
+            <div
+              className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-600 rounded-2xl cursor-pointer hover:bg-gray-800 transition-colors"
+              onClick={() => setShowCategoryModal(true)}
+            >
+              <div className="flex items-center space-x-3">
+                {currentCategoryData ? (
+                  <>
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: currentCategoryData.color + '30' }}
+                    >
+                      {getCategoryIcon(currentCategoryData.id, currentCategoryData.color)}
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">{getCategoryName(category)}</p>
+                      <p className="text-sm text-gray-400">Kategori vald</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-10 h-10 bg-gray-700 rounded-xl flex items-center justify-center">
+                      <ShoppingBag className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <div>
+                      <p className="text-gray-400 font-medium">Ingen kategori vald</p>
+                      <p className="text-sm text-gray-500">Klicka för att välja</p>
+                    </div>
+                  </>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCategoryModal(true)}
+                className="p-2 rounded-xl hover:bg-gray-700 transition-colors touch-target"
+              >
+                <Edit3 className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+          </div>
+
           <div className="flex gap-3 pt-4 sm:pt-6">
             <button
               type="button"
@@ -312,9 +395,9 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
       <CategorySelectionModal
         isOpen={showCategoryModal}
         onClose={handleCategoryModalClose}
-        onSelect={handleCategorySelected}
+        onSelect={pendingItem ? handleCategorySelected : handleManualCategorySelect}
         itemName={pendingItem?.title.replace(/\s\(\d+st\)$/, '') || title} // Remove quantity from display
-        availableCategories={SHOPPING_CATEGORIES.map(cat => cat.id)} // Show all categories for now
+        availableCategories={allCategoriesManager.getAllCategories().map(cat => cat.id)} // Show all categories including custom
       />
     </div>
   );

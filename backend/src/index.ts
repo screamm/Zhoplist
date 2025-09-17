@@ -35,7 +35,7 @@ interface Env {
 const corsHeaders = {
 	'Access-Control-Allow-Origin': '*',
 	'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-	'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Session-ID',
+	'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Session-ID, x-session-id',
 	'Access-Control-Max-Age': '86400',
 };
 
@@ -308,13 +308,13 @@ export default {
 		// Route API requests
 		if (path.startsWith('/api/todos')) {
 			const pathParts = path.split('/');
-			
+
 			try {
 				// GET /api/todos - Get all todos
 				if (method === 'GET' && pathParts.length === 3) {
 					return await getAllTodos(env.DB, request);
 				}
-				
+
 				// POST /api/todos - Create new todo
 				if (method === 'POST' && pathParts.length === 3) {
 					return await createTodo(request, env.DB);
