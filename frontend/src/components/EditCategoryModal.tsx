@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Palette, Hash, Trash2 } from 'lucide-react';
-// import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 import { CustomIcon } from './AddCategoryModal';
+import { getCategoryIcon } from './CategoryIcons';
 import type { CustomCategory } from '../utils/customCategories';
 
 interface EditCategoryModalProps {
@@ -20,9 +21,30 @@ const DEFAULT_COLORS = [
 ];
 
 const ICON_TYPES = [
-  'box', 'sports', 'electronics', 'garden', 'pets', 'baby',
-  'tools', 'books', 'auto', 'health', 'office', 'music'
+  // Standard shopping category icons
+  'dairy', 'fruits', 'vegetables', 'meat', 'fish', 'bread',
+  'pantry', 'frozen', 'drinks', 'snacks', 'household', 'personal',
+  // Additional custom icons (reduced set to fit better)
+  'box', 'sports', 'electronics', 'garden', 'pets', 'health'
 ];
+
+// Helper component to render both standard and custom icons
+const IconDisplay: React.FC<{ iconType: string; color: string; size?: number }> = ({
+  iconType,
+  color,
+  size = 24
+}) => {
+  const standardIcons = ['dairy', 'fruits', 'vegetables', 'meat', 'fish', 'bread',
+                        'pantry', 'frozen', 'drinks', 'snacks', 'household', 'personal'];
+
+  if (standardIcons.includes(iconType)) {
+    // Use standard category icon - getCategoryIcon returns JSX directly
+    return <>{getCategoryIcon(iconType, color)}</>;
+  } else {
+    // Use custom icon
+    return <CustomIcon type={iconType} color={color} />;
+  }
+};
 
 export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
   isOpen,
@@ -31,7 +53,7 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
   onDelete,
   category
 }) => {
-  // const { t } = useLanguage();
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [selectedColor, setSelectedColor] = useState(DEFAULT_COLORS[0]);
   const [selectedIcon, setSelectedIcon] = useState(ICON_TYPES[0]);
@@ -41,12 +63,20 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
   // Initialize form with category data
   useEffect(() => {
     if (category && isOpen) {
-      setName(category.name);
+      // Use translated name if it's a default category, otherwise use the custom name
+      const displayName = category.isCustom
+        ? category.name
+        : t[category.nameKey as keyof typeof t] || category.name;
+      setName(displayName);
       setSelectedColor(category.color);
-      setSelectedIcon(category.icon);
+
+      // Set the correct icon - use the category's icon ID or fall back to first icon
+      const iconToSelect = ICON_TYPES.includes(category.icon) ? category.icon : ICON_TYPES[0];
+      setSelectedIcon(iconToSelect);
+
       setShowDeleteConfirm(false);
     }
-  }, [category, isOpen]);
+  }, [category, isOpen, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,20 +169,29 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
               </div>
             )}
             
-            {/* Category Name */}
+            {/* Category Name with Preview */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
                 Kategorinamn *
               </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="t.ex. Husdjur, Sport, Elektronik"
-                className="w-full px-4 py-4 bg-gray-800/50 border border-gray-600 rounded-2xl text-white placeholder-gray-500 focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all text-base touch-target"
-                maxLength={20}
-                autoFocus
-              />
+              <div className="flex items-center space-x-3">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="t.ex. Husdjur, Sport, Elektronik"
+                  className="flex-1 px-4 py-4 bg-gray-800/50 border border-gray-600 rounded-2xl text-white placeholder-gray-500 focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all text-base touch-target"
+                  maxLength={20}
+                  autoFocus
+                />
+                {/* Live Preview */}
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: selectedColor + '30' }}
+                >
+                  <IconDisplay iconType={selectedIcon} color={selectedColor} />
+                </div>
+              </div>
               <p className="text-xs text-gray-500">{name.length}/20 tecken</p>
             </div>
 
@@ -176,7 +215,7 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
                       }
                     `}
                   >
-                    <CustomIcon type={iconType} color={selectedIcon === iconType ? 'white' : selectedColor} />
+                    <IconDisplay iconType={iconType} color={selectedIcon === iconType ? 'white' : selectedColor} />
                   </button>
                 ))}
               </div>
@@ -207,21 +246,6 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
               </div>
             </div>
 
-            {/* Preview */}
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-300">Förhandsvisning</label>
-              <div className="flex items-center justify-center p-4 bg-gray-800/30 rounded-2xl border border-gray-700">
-                <div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mr-3"
-                  style={{ backgroundColor: selectedColor + '30' }}
-                >
-                  <CustomIcon type={selectedIcon} color={selectedColor} />
-                </div>
-                <span className="text-white font-medium">
-                  {name || 'Din kategori'}
-                </span>
-              </div>
-            </div>
 
           </div>
 

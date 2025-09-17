@@ -9,6 +9,7 @@ import { AddCategoryModal } from './AddCategoryModal.js';
 import { EditCategoryModal } from './EditCategoryModal.js';
 import { generateShoppingMockData } from '../utils/shoppingMockData.js';
 import { getCategoryIcon } from './CategoryIcons.js';
+import { CustomIcon } from './AddCategoryModal.js';
 import { BottomNavbar } from './BottomNavbar.js';
 import { FlatListView } from './FlatListView.js';
 import { customCategories, type CustomCategory } from '../utils/customCategories.js';
@@ -106,7 +107,15 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
             zIndex: 3
           }}
         >
-          {getCategoryIcon(category.id, 'white', customCategoryList)}
+          {category.isStandardEdited ? (
+            // For edited standard categories, use the custom icon
+            category.icon && ['dairy', 'fruits', 'vegetables', 'meat', 'fish', 'bread', 'pantry', 'frozen', 'drinks', 'snacks', 'household', 'personal'].includes(category.icon)
+              ? getCategoryIcon(category.icon, 'white', customCategoryList)
+              : <CustomIcon type={category.icon} color="white" />
+          ) : (
+            // For unedited standard and custom categories, use normal logic
+            getCategoryIcon(category.id, 'white', customCategoryList)
+          )}
         </div>
         
         {/* Category Name */}
@@ -118,7 +127,7 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
             margin: 0,
             letterSpacing: '0.2px',
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}>{t[category.nameKey as keyof typeof t] || category.name}</h3>
+          }}>{category.isStandardEdited ? category.name : (t[category.nameKey as keyof typeof t] || category.name)}</h3>
         </div>
         
         {/* Edit Button for All Categories */}
