@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTodo } from '../context/TodoContext';
 import { useLanguage } from '../context/LanguageContext';
-import { getCategoryById, SHOPPING_CATEGORIES } from '../types/categories';
+import { getCategoryById } from '../types/categories';
 import { X, Plus, ShoppingBag, Minus, Edit3 } from 'lucide-react';
 import SmartAutocomplete from './SmartAutocomplete';
+import type { SmartAutocompleteRef } from './SmartAutocomplete';
 import { type Suggestion } from '../utils/smartAutocomplete';
 import { getCategoryIcon } from './CategoryIcons';
 import { CategorySelectionModal } from './CategorySelectionModal';
@@ -22,10 +23,11 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
   const [title, setTitle] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [category, setCategory] = useState(defaultCategory || '');
-  const [detectedCategory, setDetectedCategory] = useState<string>(''); // Kategori som detekterades från produktdatabasen
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [pendingItem, setPendingItem] = useState<{title: string, quantity: number} | null>(null);
+
+  const autocompleteRef = useRef<SmartAutocompleteRef>(null);
 
   useEffect(() => {
     if (defaultCategory) {
@@ -35,6 +37,18 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
       setCategory('');
     }
   }, [defaultCategory, isOpen]);
+
+  // Auto-focus input when modal opens
+  useEffect(() => {
+    if (isOpen && autocompleteRef.current) {
+      // Small delay to ensure modal is fully rendered
+      const timeoutId = setTimeout(() => {
+        autocompleteRef.current?.focus();
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isOpen]);
 
   const handleSuggestionSelect = (suggestion: Suggestion) => {
     setTitle(suggestion.name);
@@ -59,14 +73,9 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
       };
       const mappedCategory = categoryMapping[suggestion.category] || suggestion.category;
       setCategory(mappedCategory);
-      setDetectedCategory(mappedCategory);
     }
   };
 
-  // Funktion för att hantera kategorival
-  const handleCategoryChange = (newCategoryId: string) => {
-    setCategory(newCategoryId);
-  };
 
   // Hämta aktuell kategorisektion
   const currentCategoryData = category ? allCategoriesManager.getCategory(category) : null;
@@ -271,6 +280,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
               {t.itemName} *
             </label>
             <SmartAutocomplete
+              ref={autocompleteRef}
               value={title}
               onChange={setTitle}
               onSelect={handleSuggestionSelect}

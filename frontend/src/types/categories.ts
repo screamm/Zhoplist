@@ -8,6 +8,7 @@ export interface Category {
   color: string;
   bgColor: string;
   order: number;
+  isStandardEdited?: boolean; // Whether a standard category has been edited
 }
 
 export const SHOPPING_CATEGORIES: Category[] = [

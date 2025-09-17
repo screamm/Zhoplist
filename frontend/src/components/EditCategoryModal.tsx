@@ -31,8 +31,7 @@ const ICON_TYPES = [
 // Helper component to render both standard and custom icons
 const IconDisplay: React.FC<{ iconType: string; color: string; size?: number }> = ({
   iconType,
-  color,
-  size = 24
+  color
 }) => {
   const standardIcons = ['dairy', 'fruits', 'vegetables', 'meat', 'fish', 'bread',
                         'pantry', 'frozen', 'drinks', 'snacks', 'household', 'personal'];

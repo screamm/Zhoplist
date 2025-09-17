@@ -1,5 +1,5 @@
 // Smart Autocomplete Komponent med svensk produktdatabas
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { smartAutocomplete, type Suggestion } from '../utils/smartAutocomplete';
 import { DEFAULT_CATEGORIES } from '../data/swedishProducts';
 import { getCategoryIcon as getCategoryIconSVG } from './CategoryIcons';
@@ -16,7 +16,11 @@ interface SmartAutocompleteProps {
   maxSuggestions?: number;
 }
 
-export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
+export interface SmartAutocompleteRef {
+  focus: () => void;
+}
+
+export const SmartAutocomplete = forwardRef<SmartAutocompleteRef, SmartAutocompleteProps>(({
   value,
   onChange,
   onSelect,
@@ -25,7 +29,7 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
   disabled = false,
   showCategoryHints = true,
   maxSuggestions = 6
-}) => {
+}, ref) => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -33,6 +37,13 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
   
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Expose focus method through ref
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      inputRef.current?.focus();
+    }
+  }));
 
   // Debounced search för performance
   useEffect(() => {
@@ -326,6 +337,9 @@ export const SmartAutocomplete: React.FC<SmartAutocompleteProps> = ({
       )}
     </div>
   );
-};
+});
+
+SmartAutocomplete.displayName = 'SmartAutocomplete';
 
 export default SmartAutocomplete;
+export type { SmartAutocompleteRef };

@@ -962,6 +962,7 @@ export const ModernShoppingList: React.FC = () => {
                 </button>
               </div>
               
+              {/* Ladda exempeldata-knappen är bortkommenterad
               {filteredTodos.length === 0 && (
                 <button
                   onClick={() => {
@@ -1021,7 +1022,7 @@ export const ModernShoppingList: React.FC = () => {
                     </div>
                   </div>
                 </button>
-              )}
+              )} */}
             </div>
           </div>
         </div>

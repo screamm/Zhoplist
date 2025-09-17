@@ -19,7 +19,7 @@
     @apply antialiased;
     margin: 0;
     padding: 0;
-    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);
+    background: #001122; /* Matchar appens gradient startfärg för att undvika flash */
     /* Performance optimizations */
     will-change: transform;
     transform: translateZ(0);
