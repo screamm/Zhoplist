@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useTodo } from '../context/TodoContext.js';
 import { useLanguage } from '../context/LanguageContext.js';
 import type { Category } from '../types/categories.js';
-import { Sparkles, Settings, Save, FolderOpen, FileText, Languages } from 'lucide-react';
+import { Settings, Save, FolderOpen, FileText, Languages } from 'lucide-react';
 import type { Todo } from '../types/index.js';
 import { AddItemModal } from './AddItemModal.js';
 import { AddCategoryModal } from './AddCategoryModal.js';
 import { EditCategoryModal } from './EditCategoryModal.js';
-import { generateShoppingMockData } from '../utils/shoppingMockData.js';
+// import { generateShoppingMockData } from '../utils/shoppingMockData.js'; // Not needed anymore
 import { getCategoryIcon } from './CategoryIcons.js';
 import { CustomIcon } from './AddCategoryModal.js';
 import { BottomNavbar } from './BottomNavbar.js';
@@ -242,10 +242,10 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
 };
 
 export const ModernShoppingList: React.FC = () => {
-  const { 
-    filteredTodos, 
-    createTodo, 
-    setTodos, 
+  const {
+    filteredTodos,
+    // createTodo, // Not used anymore with mock data removed
+    setTodos,
     showToast, 
     toggleTodo, 
     deleteCompleted,
@@ -263,7 +263,7 @@ export const ModernShoppingList: React.FC = () => {
   const [editingCategory, setEditingCategory] = useState<CustomCategory | null>(null);
   const [customCategoryList, setCustomCategoryList] = useState<CustomCategory[]>([]);
   const [allCategories, setAllCategories] = useState<EditableCategory[]>([]);
-  const [isLoadingMockData, setIsLoadingMockData] = useState(false);
+  // const [isLoadingMockData, setIsLoadingMockData] = useState(false); // Commented out - not needed anymore
 
   // Load all categories on component mount
   useEffect(() => {
@@ -350,21 +350,22 @@ export const ModernShoppingList: React.FC = () => {
     return filteredTodos.filter(todo => !todo.category || todo.category.trim() === '');
   };
 
-  const loadMockData = async () => {
-    setIsLoadingMockData(true);
-    const mockItems = generateShoppingMockData();
-    
-    for (const item of mockItems) {
-      await createTodo({
-        title: item.title,
-        description: item.description,
-        category: item.category,
-        priority: item.priority
-      });
-    }
-    
-    setIsLoadingMockData(false);
-  };
+  // Commented out - mock data loading not needed anymore
+  // const loadMockData = async () => {
+  //   setIsLoadingMockData(true);
+  //   const mockItems = generateShoppingMockData();
+  //
+  //   for (const item of mockItems) {
+  //     await createTodo({
+  //       title: item.title,
+  //       description: item.description,
+  //       category: item.category,
+  //       priority: item.priority
+  //     });
+  //   }
+  //
+  //   setIsLoadingMockData(false);
+  // };
 
   const saveCurrentList = () => {
     if (saveListName.trim() === '') return;
@@ -644,7 +645,8 @@ export const ModernShoppingList: React.FC = () => {
             <div style={{
               marginBottom: '20px',
               paddingBottom: '16px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+              position: 'relative'
             }}>
               <h3 style={{
                 margin: 0,
@@ -662,6 +664,38 @@ export const ModernShoppingList: React.FC = () => {
               }}>
                 Hantera listor och språk
               </p>
+              {/* Close button */}
+              <button
+                onClick={() => setShowMenu(false)}
+                style={{
+                  position: 'absolute',
+                  top: '0',
+                  right: '0',
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.4)',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  padding: '0',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '8px',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.4)';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
+                ×
+              </button>
             </div>
 
             {/* Menu Items */}

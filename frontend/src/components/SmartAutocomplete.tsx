@@ -34,7 +34,9 @@ export const SmartAutocomplete = forwardRef<SmartAutocompleteRef, SmartAutocompl
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [justSelected, setJustSelected] = useState(false);
+  const [hasFocus, setHasFocus] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -47,16 +49,28 @@ export const SmartAutocomplete = forwardRef<SmartAutocompleteRef, SmartAutocompl
 
   // Debounced search för performance
   useEffect(() => {
+    // Om användaren just klickat på ett förslag, gör INGENTING
+    if (justSelected) {
+      // Vänta lite och återställ sedan flaggan
+      const resetTimeout = setTimeout(() => {
+        setJustSelected(false);
+      }, 500); // Vänta 500ms innan vi tillåter nya sökningar
+      return () => clearTimeout(resetTimeout);
+    }
+
     const timeoutId = setTimeout(() => {
       if (value.length >= 1) { // Visa bara förslag när användaren börjat skriva
         setIsLoading(true);
-        
+
         const newSuggestions = smartAutocomplete.getSuggestions(value);
-        
-        
+
         setSuggestions(newSuggestions.slice(0, maxSuggestions));
         setIsLoading(false);
-        setIsOpen(true);
+
+        // Öppna BARA om fältet har fokus
+        if (hasFocus) {
+          setIsOpen(true);
+        }
         setSelectedIndex(-1);
       } else {
         setSuggestions([]);
@@ -65,7 +79,7 @@ export const SmartAutocomplete = forwardRef<SmartAutocompleteRef, SmartAutocompl
     }, 150); // 150ms debounce för smooth typing
 
     return () => clearTimeout(timeoutId);
-  }, [value, maxSuggestions]);
+  }, [value, maxSuggestions, justSelected, hasFocus]);
 
   // Stäng dropdown när man klickar utanför
   useEffect(() => {
@@ -137,25 +151,24 @@ export const SmartAutocomplete = forwardRef<SmartAutocompleteRef, SmartAutocompl
 
   // Hantera val av suggestion
   const handleSuggestionClick = useCallback((suggestion: Suggestion) => {
+    // Stäng dropdown OMEDELBART innan något annat
+    setIsOpen(false);
+    setSuggestions([]); // Töm suggestions array helt
+    setSelectedIndex(-1);
+    setJustSelected(true); // Sätt flaggan som förhindrar att listan öppnas igen
+    setHasFocus(false); // Markera att fältet inte har fokus längre
+
     // Lär autocomplete från valet
     smartAutocomplete.learn(suggestion.name);
-    
-    // Stäng dropdown först för att förhindra återöppning
-    setIsOpen(false);
-    setSelectedIndex(-1);
-    setSuggestions([]);
-    
+
     // Uppdatera värdet till det valda förslaget
     onChange(suggestion.name);
-    
+
     // Meddela parent component
     onSelect(suggestion);
-    
-    // Blur input för att helt stänga autocomplete
-    if (inputRef.current) {
-      inputRef.current.blur();
-      setTimeout(() => inputRef.current?.focus(), 50); // Focus tillbaka efter kort delay
-    }
+
+    // Ta bort fokus från input-fältet direkt (ingen timeout behövs)
+    inputRef.current?.blur();
   }, [onChange, onSelect]);
 
   // Mappa svenska kategori-id till app-kategori-id
@@ -270,10 +283,24 @@ export const SmartAutocomplete = forwardRef<SmartAutocompleteRef, SmartAutocompl
         ref={inputRef}
         type="text"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          setJustSelected(false); // Återställ flaggan när användaren skriver
+          onChange(e.target.value);
+        }}
         onKeyDown={handleKeyDown}
         onFocus={() => {
-          if (value.length >= 1 && suggestions.length > 0) setIsOpen(true);
+          setHasFocus(true);
+          // Endast öppna listan om användaren inte precis valt ett förslag
+          if (!justSelected && value.length >= 1 && suggestions.length > 0) {
+            setIsOpen(true);
+          }
+        }}
+        onBlur={() => {
+          setHasFocus(false);
+          // Stäng listan när fältet förlorar fokus
+          setTimeout(() => {
+            setIsOpen(false);
+          }, 200); // Liten fördröjning så man hinner klicka på förslag
         }}
         placeholder={placeholder}
         disabled={disabled}
@@ -342,4 +369,3 @@ export const SmartAutocomplete = forwardRef<SmartAutocompleteRef, SmartAutocompl
 SmartAutocomplete.displayName = 'SmartAutocomplete';
 
 export default SmartAutocomplete;
-export type { SmartAutocompleteRef };
