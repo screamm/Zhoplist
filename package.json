@@ -54,6 +54,6 @@
   },
   "homepage": "https://zhoplist.pages.dev",
   "dependencies": {
-    "wrangler": "^4.34.0"
+    "wrangler": "^4.39.0"
   }
 }

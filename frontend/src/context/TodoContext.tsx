@@ -99,38 +99,54 @@ const todoReducer = (state: TodoState, action: TodoAction): TodoState => {
       return newState2;
     }
 
-    case 'UPDATE_TODO':
-      return {
+    case 'UPDATE_TODO': {
+      const updatedTodos = (state.todos || []).map(todo =>
+        todo.id === action.payload.id
+          ? { ...todo, ...action.payload.updates, updatedAt: new Date().toISOString() }
+          : todo
+      );
+      const newState6 = {
         ...state,
-        todos: (state.todos || []).map(todo =>
-          todo.id === action.payload.id
-            ? { ...todo, ...action.payload.updates, updatedAt: new Date().toISOString() }
-            : todo
-        ),
+        todos: updatedTodos,
         editingTodo: null,
       };
+      saveToStorage(updatedTodos); // Fix: Save to localStorage after update
+      return newState6;
+    }
 
-    case 'DELETE_TODO':
-      return {
+    case 'DELETE_TODO': {
+      const filteredTodos = (state.todos || []).filter(todo => todo.id !== action.payload);
+      const newState3 = {
         ...state,
-        todos: (state.todos || []).filter(todo => todo.id !== action.payload),
+        todos: filteredTodos,
       };
+      saveToStorage(filteredTodos); // Fix: Save to localStorage after deletion
+      return newState3;
+    }
 
-    case 'TOGGLE_TODO':
-      return {
+    case 'TOGGLE_TODO': {
+      const updatedTodos = (state.todos || []).map(todo =>
+        todo.id === action.payload
+          ? { ...todo, completed: !todo.completed, updatedAt: new Date().toISOString() }
+          : todo
+      );
+      const newState4 = {
         ...state,
-        todos: (state.todos || []).map(todo =>
-          todo.id === action.payload
-            ? { ...todo, completed: !todo.completed, updatedAt: new Date().toISOString() }
-            : todo
-        ),
+        todos: updatedTodos,
       };
+      saveToStorage(updatedTodos); // Fix: Save to localStorage after toggle
+      return newState4;
+    }
 
-    case 'DELETE_COMPLETED':
-      return {
+    case 'DELETE_COMPLETED': {
+      const activeTodos = (state.todos || []).filter(todo => !todo.completed);
+      const newState5 = {
         ...state,
-        todos: (state.todos || []).filter(todo => !todo.completed),
+        todos: activeTodos,
       };
+      saveToStorage(activeTodos); // Fix: Save to localStorage after deleting completed
+      return newState5;
+    }
 
     case 'SET_FILTER':
       return { ...state, filter: action.payload };
@@ -283,11 +299,12 @@ export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Listen for sessionID changes and reload todos
   useEffect(() => {
     const unsubscribe = sessionManager.onSessionChange(() => {
-      // När sessionID ändras, ladda nya todos
+      // När sessionID ändras, rensa localStorage och ladda nya todos
+      localStorage.removeItem(STORAGE_KEY); // Fix: Clear localStorage on session change
       dispatch({ type: 'SET_TODOS', payload: [] }); // Rensa gamla todos
       loadTodos(); // Ladda nya todos för ny session
     });
-    
+
     return unsubscribe;
   }, [loadTodos]);
 
