@@ -7,15 +7,16 @@ import { ModernShoppingList } from './components/ModernShoppingList';
 import { SplashScreen } from './components/SplashScreen';
 import { EditTodoModal } from './components/EditTodoModal';
 import { useTodo } from './context/TodoContext';
-import { 
-  registerServiceWorker, 
-  setupInstallPrompt, 
+import {
+  registerServiceWorker,
+  setupInstallPrompt,
   setupOfflineHandling,
   handleAppShortcuts,
   handleShareTarget,
   isPWA,
   isFromPlayStore
 } from './utils/pwa';
+import { adManager } from './utils/adManager';
 
 function AppContent() {
   const { state, dispatch } = useTodo();
@@ -23,12 +24,15 @@ function AppContent() {
   const [showSplash, setShowSplash] = useState(true);
   
   useEffect(() => {
+    // Initiera AdMob och track app open
+    adManager.trackAppOpen();
+
     // Registrera Service Worker
     registerServiceWorker();
-    
+
     // Setup PWA install prompt
     setupInstallPrompt();
-    
+
     // Setup offline handling
     const online = setupOfflineHandling();
     setIsOffline(!online);

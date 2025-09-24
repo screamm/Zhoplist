@@ -14,6 +14,8 @@ import { BottomNavbar } from './BottomNavbar.js';
 import { FlatListView } from './FlatListView.js';
 import { customCategories, type CustomCategory } from '../utils/customCategories.js';
 import { allCategoriesManager, type EditableCategory } from '../utils/allCategoriesManager.js';
+import { adManager } from '../utils/adManager.js';
+import { isPremiumUser } from '../utils/pwa.js';
 
 interface CategoryRowProps {
   category: Category;
@@ -277,6 +279,7 @@ export const ModernShoppingList: React.FC = () => {
   const [savedLists, setSavedLists] = useState<Array<{id: string, name: string, date: string, todos: Todo[]}>>([]);
   const [currentListName, setCurrentListName] = useState('');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showFallbackBanner, setShowFallbackBanner] = useState(false);
 
   // Debug logging
   
@@ -439,6 +442,28 @@ export const ModernShoppingList: React.FC = () => {
     loadSavedLists();
   }, []);
 
+  // Listen för AdMob-fel för att visa fallback
+  React.useEffect(() => {
+    const handleAdMobFail = () => {
+      setShowFallbackBanner(true);
+      console.log('AdMob failed - showing fallback banner');
+    };
+
+    window.addEventListener('admob-failed', handleAdMobFail);
+
+    // Visa fallback efter 10 sekunder om AdMob inte fungerar
+    const fallbackTimer = setTimeout(() => {
+      if (!isPremiumUser() && !adManager.hasAdMobFailed()) {
+        setShowFallbackBanner(true);
+      }
+    }, 10000);
+
+    return () => {
+      window.removeEventListener('admob-failed', handleAdMobFail);
+      clearTimeout(fallbackTimer);
+    };
+  }, []);
+
 
   return (
     <div style={{ 
@@ -451,13 +476,63 @@ export const ModernShoppingList: React.FC = () => {
       background: 'linear-gradient(180deg, #001122 0%, #1e3a8a 100%)',
       fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif'
     }}>
+      {/* Fallback Banner - Visas om AdMob inte fungerar */}
+      {!isPremiumUser() && showFallbackBanner && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          background: 'rgba(15, 23, 42, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          padding: '8px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          minHeight: '50px'
+        }}>
+          <span style={{
+            color: 'rgba(255, 255, 255, 0.8)',
+            fontSize: '12px',
+            fontWeight: '400'
+          }}>
+            Zhoplist är gratis med reklam
+          </span>
+          <span style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '12px' }}>•</span>
+          <button
+            onClick={() => {
+              adManager.showPremiumDialog();
+              // Försök även köra AdMob igen
+              adManager.retryAdMob();
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#60a5fa',
+              fontSize: '12px',
+              fontWeight: '500',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              padding: '0'
+            }}
+          >
+            Slipp reklam för 69 kr
+          </button>
+        </div>
+      )}
+
       {/* Header */}
-      <div style={{ 
+      <div style={{
         padding: '0 16px',
-        paddingTop: '48px',
+        paddingTop: isPremiumUser() ? '48px' : '98px', // Extra plats för AdMob banner
         paddingBottom: '24px',
         borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
       }}>
+        {/* AdMob banner visas högst upp automatiskt via TOP_CENTER position */}
+
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button
             onClick={() => setShowMenu(!showMenu)}
@@ -476,16 +551,16 @@ export const ModernShoppingList: React.FC = () => {
             <div style={{ width: '20px', height: '2px', backgroundColor: 'white' }}></div>
             <div style={{ width: '14px', height: '2px', backgroundColor: 'white' }}></div>
           </button>
-          
-          <h1 style={{ 
-            color: 'white', 
-            fontSize: '17px', 
-            fontWeight: '600', 
+
+          <h1 style={{
+            color: 'white',
+            fontSize: '17px',
+            fontWeight: '600',
             letterSpacing: '0.5px',
             textTransform: 'uppercase',
             margin: 0
           }}>{currentListName || t.shoppingList}</h1>
-          
+
           <div style={{ width: '36px' }}></div>
         </div>
       </div>
@@ -849,6 +924,59 @@ export const ModernShoppingList: React.FC = () => {
                   </div>
                 </div>
               </button>
+
+              {/* Premium Upgrade - Only show if not premium */}
+              {!isPremiumUser() && (
+                <button
+                  onClick={() => {
+                    adManager.showPremiumDialog();
+                    setShowMenu(false);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '16px',
+                    margin: '0 0 8px 0',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    borderRadius: '16px',
+                    color: 'white',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    fontSize: '15px',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    transition: 'all 0.2s ease',
+                    border: '1px solid rgba(34, 197, 94, 0.3)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.2)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <span style={{ fontSize: '18px', color: '#22c55e' }}>✨</span>
+                  </div>
+                  <div>
+                    <div>Slipp reklam</div>
+                    <div style={{ fontSize: '13px', color: 'rgba(34, 197, 94, 0.8)', marginTop: '2px' }}>
+                      Endast 69 kr - engångsköp
+                    </div>
+                  </div>
+                </button>
+              )}
 
               {/* Delete Lists - Only show if there are saved lists */}
               {savedLists.length > 0 && (

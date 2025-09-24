@@ -3,6 +3,7 @@ import type { Todo, TodoFormData, TodoFilter, TodoSort, ToastNotification } from
 import { api } from '../utils/api.js';
 import { v4 as uuidv4 } from 'uuid';
 import { sessionManager } from '../utils/sessionManager.js';
+import { adManager } from '../utils/adManager.js';
 
 // Add at the top after imports
 const STORAGE_KEY = 'shopping-list-todos';
@@ -89,9 +90,11 @@ const todoReducer = (state: TodoState, action: TodoAction): TodoState => {
     }
 
     case 'ADD_TODO': {
+      // Track user activity för smart ad timing
+      adManager.trackUserActivity();
       const newTodos = [action.payload, ...(state.todos || [])];
-      const newState2 = { 
-        ...state, 
+      const newState2 = {
+        ...state,
         todos: newTodos,
         isAddModalOpen: false 
       };
@@ -125,6 +128,8 @@ const todoReducer = (state: TodoState, action: TodoAction): TodoState => {
     }
 
     case 'TOGGLE_TODO': {
+      // Track user activity för smart ad timing
+      adManager.trackUserActivity();
       const updatedTodos = (state.todos || []).map(todo =>
         todo.id === action.payload
           ? { ...todo, completed: !todo.completed, updatedAt: new Date().toISOString() }

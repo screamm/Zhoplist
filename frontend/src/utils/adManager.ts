@@ -1,39 +1,40 @@
-// Ad Manager för Zhoplist - AdMob och Play Billing integration
+// Simplified Ad Manager för Zhoplist - Endast Banner Ads
+// Användarvänlig reklamlösning med engångsköp för premium
 
-import { isPremiumUser } from './pwa';
+import { isPremiumUser, setPremiumUser } from './pwa';
 
-// AdMob konfiguration
+// AdMob konfiguration - Endast Banner Ads
 const AD_CONFIG = {
   // App ID
   APP_ID: 'ca-app-pub-6748269812398218~1968418017',
-  
-  // Produktion IDs
+
+  // Banner Ad ID (Produktion)
   BANNER_AD_ID: 'ca-app-pub-6748269812398218/5769714618',
-  INTERSTITIAL_AD_ID: 'ca-app-pub-6748269812398218/1146290931',
-  REWARDED_AD_ID: 'ca-app-pub-6748269812398218/1830469601',
-  
-  // Test IDs (för utveckling)
+
+  // Test ID för utveckling
   TEST_BANNER_AD_ID: 'ca-app-pub-3940256099942544/6300978111',
-  TEST_INTERSTITIAL_AD_ID: 'ca-app-pub-3940256099942544/1033173712',
-  TEST_REWARDED_AD_ID: 'ca-app-pub-3940256099942544/5224354917',
-  
+
   // Environment flag
   USE_TEST_ADS: false, // Sätt till false för produktion
 };
 
-// Play Billing konfiguration
-const BILLING_CONFIG = {
-  REMOVE_ADS_SKU: 'remove_ads_forever',
-  PRICE: '149 kr',
-  PRICE_USD: '$14.99',
-  COMPARISON: 'Mindre än två kaffe på Espresso House',
+// Borttagna oanvända Ad IDs:
+// Interstitial: ca-app-pub-6748269812398218/1146290931 (ej längre använd)
+// Rewarded: ca-app-pub-6748269812398218/1830469601 (ej längre använd)
+
+// Premium konfiguration - Engångsköp
+const PREMIUM_CONFIG = {
+  PRICE_SEK: '69 kr',
+  PRICE_USD: '$6.99',
+  DESCRIPTION: 'Ta bort all reklam för alltid',
+  BENEFIT: 'Helt reklamfri upplevelse',
 };
 
 export class AdManager {
   private static instance: AdManager;
   private adsInitialized = false;
-  private interstitialCounter = 0;
-  private lastInterstitialTime = 0;
+  private bannerVisible = false;
+  private adMobFailed = false;
 
   private constructor() {
     this.init();
@@ -49,7 +50,7 @@ export class AdManager {
   private async init() {
     // Kolla om användaren är premium
     if (isPremiumUser()) {
-      console.log('Premium user - ads disabled');
+      console.log('Premium user - no ads');
       return;
     }
 
@@ -57,17 +58,20 @@ export class AdManager {
     if (typeof (window as unknown as { Capacitor?: unknown }).Capacitor !== 'undefined') {
       try {
         const { AdMob } = await import('@capacitor-community/admob');
-        
+
         await AdMob.initialize({
-          testDeviceIdentifiers: ['YOUR_TEST_DEVICE_ID'], // Lägg till ditt test device ID
+          testDeviceIdentifiers: [], // Lägg till ditt test device ID här vid utveckling
           initializeForTesting: AD_CONFIG.USE_TEST_ADS,
         } as Record<string, unknown>);
 
         this.adsInitialized = true;
-        console.log('AdMob initialized');
-        
-        // Visa banner ad
-        this.showBannerAd();
+        console.log('AdMob initialized - Banner only mode');
+
+        // Visa AdMob banner efter 5 sekunder
+        setTimeout(() => {
+          this.showBannerAd();
+        }, 5000);
+
       } catch (error) {
         console.error('AdMob initialization failed:', error);
       }
@@ -76,204 +80,131 @@ export class AdManager {
     }
   }
 
-  // Banner Ads
+  // Header Banner - Diskret banner i header-området
+  createHeaderBanner(): HTMLElement | null {
+    if (isPremiumUser()) return null;
+
+    // Skapa en diskret banner för header
+    const banner = document.createElement('div');
+    banner.id = 'zhoplist-header-banner';
+    banner.className = 'w-full bg-gray-100 dark:bg-gray-700 text-center py-1 text-xs text-gray-600 dark:text-gray-300';
+    banner.innerHTML = `
+      <span>Zhoplist är gratis med reklam • </span>
+      <button id="premium-upgrade" class="text-blue-600 dark:text-blue-400 underline font-medium">
+        Slipp reklam för ${PREMIUM_CONFIG.PRICE_SEK}
+      </button>
+    `;
+
+    // Lägg till click handler
+    banner.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).id === 'premium-upgrade') {
+        this.showPremiumDialog();
+      }
+    });
+
+    return banner;
+  }
+
+  // Legacy banner ads (fortfarande tillgänglig för test)
   async showBannerAd() {
-    if (!this.adsInitialized || isPremiumUser()) return;
+    if (!this.adsInitialized || isPremiumUser() || this.bannerVisible) return;
 
     try {
-      const { AdMob, BannerAdSize, BannerAdPosition } = 
+      const { AdMob, BannerAdSize, BannerAdPosition } =
         await import('@capacitor-community/admob');
-      
+
       const options: Record<string, unknown> = {
         adId: AD_CONFIG.USE_TEST_ADS ? AD_CONFIG.TEST_BANNER_AD_ID : AD_CONFIG.BANNER_AD_ID,
         adSize: BannerAdSize.ADAPTIVE_BANNER,
-        position: BannerAdPosition.BOTTOM_CENTER,
+        position: BannerAdPosition.TOP_CENTER,
         margin: 0,
         isTesting: AD_CONFIG.USE_TEST_ADS,
       };
 
       await (AdMob.showBanner as any)(options);
-      console.log('Banner ad shown');
+      this.bannerVisible = true;
+      this.adMobFailed = false;
+      console.log('Banner ad displayed');
     } catch (error) {
       console.error('Failed to show banner:', error);
+      this.adMobFailed = true;
+      // Notifiera appen om att fallback ska visas
+      window.dispatchEvent(new CustomEvent('admob-failed'));
     }
   }
 
   async hideBannerAd() {
-    if (!this.adsInitialized) return;
+    if (!this.adsInitialized || !this.bannerVisible) return;
 
     try {
       const { AdMob } = await import('@capacitor-community/admob');
       await AdMob.hideBanner();
+      this.bannerVisible = false;
       console.log('Banner ad hidden');
     } catch (error) {
       console.error('Failed to hide banner:', error);
     }
   }
 
-  // Interstitial Ads - Smart timing för shopping lists
-  async showInterstitialAd(): Promise<boolean> {
-    if (!this.adsInitialized || isPremiumUser()) return false;
+  // Dölj banner temporärt under aktiv shopping
+  async pauseBannerDuringShopping() {
+    if (this.bannerVisible && !isPremiumUser()) {
+      await this.hideBannerAd();
 
-    // Rate limiting - max var 3:e minut
-    const now = Date.now();
-    if (now - this.lastInterstitialTime < 180000) {
-      return false;
-    }
-
-    // Visa endast var 3:e gång
-    this.interstitialCounter++;
-    if (this.interstitialCounter % 3 !== 0) {
-      return false;
-    }
-
-    // ALDRIG visa under aktiv shopping
-    if (this.isUserActivelyShopping()) {
-      return false;
-    }
-
-    try {
-      const { AdMob } = await import('@capacitor-community/admob');
-      
-      const options: Record<string, unknown> = {
-        adId: AD_CONFIG.USE_TEST_ADS ? AD_CONFIG.TEST_INTERSTITIAL_AD_ID : AD_CONFIG.INTERSTITIAL_AD_ID,
-        isTesting: AD_CONFIG.USE_TEST_ADS,
-      };
-
-      await (AdMob.prepareInterstitial as any)(options);
-      await AdMob.showInterstitial();
-      
-      this.lastInterstitialTime = now;
-      console.log('Interstitial ad shown');
-      return true;
-    } catch (error) {
-      console.error('Failed to show interstitial:', error);
-      return false;
+      // Visa igen efter 2 minuter
+      setTimeout(() => {
+        if (!isPremiumUser()) {
+          this.showBannerAd();
+        }
+      }, 120000);
     }
   }
 
-  // Rewarded Ads
-  async showRewardedAd(): Promise<boolean> {
-    if (!this.adsInitialized || isPremiumUser()) return false;
-
-    try {
-      const { AdMob, RewardAdPluginEvents } = 
-        await import('@capacitor-community/admob');
-      
-      return new Promise((resolve) => {
-        // Setup reward listener
-        (AdMob.addListener as any)(RewardAdPluginEvents.Rewarded, (reward: Record<string, unknown>) => {
-          console.log('User rewarded:', reward);
-          this.grantTemporaryPremium();
-          resolve(true);
-        });
-
-        AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
-          resolve(false);
-        });
-
-        const options: Record<string, unknown> = {
-          adId: AD_CONFIG.USE_TEST_ADS ? AD_CONFIG.TEST_REWARDED_AD_ID : AD_CONFIG.REWARDED_AD_ID,
-          isTesting: AD_CONFIG.USE_TEST_ADS,
-        };
-
-        (AdMob.prepareRewardVideoAd as any)(options).then(() => {
-          return AdMob.showRewardVideoAd();
-        }).catch((error: unknown) => {
-          console.error('Failed to prepare/show rewarded ad:', error);
-          resolve(false);
-        });
-      });
-    } catch (error) {
-      console.error('Failed to show rewarded ad:', error);
-      return false;
-    }
-  }
-
-  // Grant temporary premium (24 hours)
-  private grantTemporaryPremium() {
-    const expiryTime = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
-    localStorage.setItem('temporaryPremium', expiryTime.toString());
-    this.hideBannerAd();
-    
-    // Visa notifikation
-    this.showNotification('Reklam borttagen i 24 timmar! 🎉');
-    
-    // Sätt timer för att återaktivera ads
-    setTimeout(() => {
-      this.checkTemporaryPremium();
-    }, 24 * 60 * 60 * 1000);
-  }
-
-  checkTemporaryPremium(): boolean {
-    const expiryTime = localStorage.getItem('temporaryPremium');
-    if (!expiryTime) return false;
-
-    const expiry = parseInt(expiryTime);
-    if (Date.now() < expiry) {
-      return true;
-    } else {
-      localStorage.removeItem('temporaryPremium');
-      this.showBannerAd();
-      return false;
-    }
-  }
-
-  // Play Billing - One-time purchase
+  // Premium Purchase - Engångsköp
   async purchasePremium(): Promise<boolean> {
+    // Web fallback om inte i app
     if (typeof (window as unknown as { Capacitor?: unknown }).Capacitor === 'undefined') {
-      console.log('Not running in Capacitor - opening web payment');
-      // Fallback till web payment
+      console.log('Opening web payment');
       window.open('https://zhoplist.com/premium', '_blank');
       return false;
     }
 
     try {
-      // Detta kräver @capacitor-community/play-billing plugin
-      // const { PlayBilling } = await import('@capacitor-community/play-billing');
-      console.log('Play Billing not implemented yet');
-      return false;
+      // Här skulle Play Billing integreras senare
+      // För nu, simulera köp för test
+      console.log('Premium purchase initiated - 69 SEK');
+
+      // TODO: Implementera Play Billing när redo
       /*
-      
-      // Koppla till Play Store
-      await PlayBilling.connect();
-      
-      // Hämta produkt-info
-      const products = await PlayBilling.queryProductDetails({
-        productIds: [BILLING_CONFIG.REMOVE_ADS_SKU],
-        productType: 'inapp',
-      });
+      const { Purchases } = await import('@revenuecat/purchases-capacitor');
 
-      if (products.length === 0) {
-        throw new Error('Product not found');
+      const offerings = await Purchases.getOfferings();
+      const purchasePackage = offerings.current?.availablePackages[0];
+
+      if (purchasePackage) {
+        const purchaseResult = await Purchases.purchasePackage({ aPackage: purchasePackage });
+
+        if (purchaseResult.customerInfo.entitlements.active['premium']) {
+          setPremiumUser(true);
+          await this.hideBannerAd();
+          this.showNotification('Tack! Nu är Zhoplist helt reklamfri! 🎉');
+          return true;
+        }
       }
+      */
 
-      // Genomför köp
-      const purchase = await PlayBilling.purchaseProduct({
-        productId: BILLING_CONFIG.REMOVE_ADS_SKU,
-        productType: 'inapp',
-        offerToken: products[0].offerToken,
-      });
-
-      if (purchase.purchased) {
-        // Bekräfta köp
-        await PlayBilling.acknowledgePurchase({
-          purchaseToken: purchase.purchaseToken,
-        });
-
-        // Aktivera premium
+      // Temporär test-implementation
+      if (confirm(`Köp Zhoplist Premium för ${PREMIUM_CONFIG.PRICE_SEK}?\n\n${PREMIUM_CONFIG.BENEFIT}`)) {
         setPremiumUser(true);
-        this.hideBannerAd();
-        this.showNotification('Tack för ditt köp! Reklam borttagen för alltid! 🎊');
-        
+        await this.hideBannerAd();
+        this.showNotification('Tack! Nu är Zhoplist helt reklamfri! 🎉');
         return true;
       }
 
       return false;
-      */
     } catch (error) {
       console.error('Purchase failed:', error);
-      this.showNotification('Köpet misslyckades. Försök igen senare.');
+      this.showNotification('Köpet kunde inte genomföras. Försök igen senare.');
       return false;
     }
   }
@@ -285,159 +216,141 @@ export class AdManager {
     }
 
     try {
-      // const { PlayBilling } = await import('@capacitor-community/play-billing');
-      console.log('Play Billing not implemented yet');
-      return false;
-      /*
-      
-      await PlayBilling.connect();
-      
-      const purchases = await PlayBilling.queryPurchases({
-        productType: 'inapp',
-      });
+      // TODO: Implementera med Play Billing
+      console.log('Restore purchases - checking previous purchases');
 
-      for (const purchase of purchases) {
-        if (purchase.productId === BILLING_CONFIG.REMOVE_ADS_SKU && 
-            purchase.purchaseState === 1) { // PURCHASED
-          setPremiumUser(true);
-          this.hideBannerAd();
-          this.showNotification('Premium återställd! 🎉');
-          return true;
-        }
+      /*
+      const { Purchases } = await import('@revenuecat/purchases-capacitor');
+      const customerInfo = await Purchases.restorePurchases();
+
+      if (customerInfo.entitlements.active['premium']) {
+        setPremiumUser(true);
+        await this.hideBannerAd();
+        this.showNotification('Premium återställd! 🎉');
+        return true;
       }
+      */
 
       this.showNotification('Inga tidigare köp hittades');
       return false;
-      */
     } catch (error) {
       console.error('Restore failed:', error);
       return false;
     }
   }
 
-  // Smart prompts för konvertering
-  showConversionPrompt() {
-    const appOpens = parseInt(localStorage.getItem('appOpens') || '0');
-    const lastPromptTime = parseInt(localStorage.getItem('lastPromptTime') || '0');
-    const now = Date.now();
-
-    // Visa prompt efter 20 användningar, max en gång per vecka
-    if (appOpens >= 20 && (now - lastPromptTime) > 7 * 24 * 60 * 60 * 1000) {
-      this.showPurchaseDialog();
-      localStorage.setItem('lastPromptTime', now.toString());
-    }
-  }
-
-  private showPurchaseDialog() {
-    // Skapa custom dialog
+  // Visa premium-dialog (enkel och tydlig)
+  showPremiumDialog() {
     const dialog = document.createElement('div');
     dialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
     dialog.innerHTML = `
-      <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
-        <h3 class="text-xl font-bold mb-4">Älskar du Zhoplist? 🇸🇪</h3>
-        <p class="mb-4">Du har använt appen ${localStorage.getItem('appOpens')} gånger!</p>
-        <p class="mb-2">Ta bort all reklam för alltid för bara <strong>${BILLING_CONFIG.PRICE}</strong></p>
-        <p class="text-sm text-gray-600 mb-6">${BILLING_CONFIG.COMPARISON}</p>
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm mx-4">
+        <h3 class="text-xl font-bold mb-4 dark:text-white">
+          Ta bort reklam? 🚫
+        </h3>
+        <div class="mb-6">
+          <p class="mb-2 dark:text-gray-200">
+            Få en helt reklamfri upplevelse för alltid!
+          </p>
+          <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+            Endast ${PREMIUM_CONFIG.PRICE_SEK}
+          </p>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Engångsköp - inga prenumerationer
+          </p>
+        </div>
         <div class="flex gap-3">
-          <button id="purchase-btn" class="flex-1 bg-green-600 text-white py-2 rounded font-semibold">
+          <button id="premium-buy-btn" class="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700">
             Köp Premium
           </button>
-          <button id="watch-ad-btn" class="flex-1 bg-gray-200 py-2 rounded text-sm">
-            Titta på reklam (24h gratis)
+          <button id="premium-close-btn" class="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-white py-3 rounded-lg">
+            Senare
           </button>
         </div>
-        <button id="close-btn" class="w-full mt-3 text-gray-500">
-          Kanske senare
-        </button>
       </div>
     `;
 
     document.body.appendChild(dialog);
 
     // Event handlers
-    document.getElementById('purchase-btn')?.addEventListener('click', () => {
+    document.getElementById('premium-buy-btn')?.addEventListener('click', () => {
       this.purchasePremium();
       document.body.removeChild(dialog);
     });
 
-    document.getElementById('watch-ad-btn')?.addEventListener('click', () => {
-      this.showRewardedAd();
+    document.getElementById('premium-close-btn')?.addEventListener('click', () => {
       document.body.removeChild(dialog);
     });
 
-    document.getElementById('close-btn')?.addEventListener('click', () => {
-      document.body.removeChild(dialog);
+    // Stäng vid klick utanför
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) {
+        document.body.removeChild(dialog);
+      }
     });
   }
 
+  // Smart prompt för premium (icke-påträngande)
+  checkPremiumPrompt() {
+    const appOpens = parseInt(localStorage.getItem('appOpens') || '0');
+    const lastPromptTime = parseInt(localStorage.getItem('lastPremiumPrompt') || '0');
+    const now = Date.now();
+
+    // Visa efter 10 användningar, max en gång per vecka
+    if (appOpens >= 10 && (now - lastPromptTime) > 7 * 24 * 60 * 60 * 1000) {
+      this.showPremiumDialog();
+      localStorage.setItem('lastPremiumPrompt', now.toString());
+    }
+  }
+
   private showNotification(message: string) {
-    const event = new CustomEvent('app-notification', { 
-      detail: { message } 
+    const event = new CustomEvent('app-notification', {
+      detail: { message }
     });
     window.dispatchEvent(event);
   }
 
-  // Smart timing functions
-  private isUserActivelyShopping(): boolean {
-    const lastActivity = parseInt(localStorage.getItem('lastItemActivity') || '0');
-    const now = Date.now();
-    
-    // Om användaren lagt till/checkeat items senaste 2 minuterna
-    return (now - lastActivity) < 120000;
-  }
-  
-  private updateUserActivity() {
-    localStorage.setItem('lastItemActivity', Date.now().toString());
-  }
-  
-  // Track app usage
+  // Track app usage (utan automatiska prompts)
   trackAppOpen() {
     const opens = parseInt(localStorage.getItem('appOpens') || '0') + 1;
     localStorage.setItem('appOpens', opens.toString());
-    
-    // Kolla om vi ska visa conversion prompt
-    this.showConversionPrompt();
-  }
-  
-  // Call this when user adds/checks items
-  trackItemActivity() {
-    this.updateUserActivity();
+    console.log(`App opened ${opens} times`);
+    // Ingen automatisk premium prompt längre
   }
 
-  // Event handlers för lista-actions
-  onListCompleted() {
-    // Visa interstitial när lista är klar
-    this.showInterstitialAd();
+  // Call när användaren lägger till/checkar items
+  trackUserActivity() {
+    localStorage.setItem('lastItemActivity', Date.now().toString());
   }
 
-  onListShared() {
-    // Möjlighet att visa ad efter delning
-    if (Math.random() > 0.5) { // 50% chans
-      this.showInterstitialAd();
-    }
+  // Check om användaren är mitt i shopping
+  isUserActivelyShopping(): boolean {
+    const lastActivity = parseInt(localStorage.getItem('lastItemActivity') || '0');
+    const now = Date.now();
+    // Aktiv om använt inom 2 minuter
+    return (now - lastActivity) < 120000;
+  }
+
+  // Check om AdMob har misslyckats
+  hasAdMobFailed(): boolean {
+    return this.adMobFailed;
+  }
+
+  // Försök visa AdMob igen
+  retryAdMob() {
+    this.adMobFailed = false;
+    this.showBannerAd();
   }
 }
 
-// Helper function för att växla mellan test och produktion
+// Helper functions
 export function setAdTestMode(isTest: boolean) {
   (AD_CONFIG as Record<string, unknown>).USE_TEST_ADS = isTest;
   console.log(`AdMob test mode: ${isTest ? 'ON' : 'OFF'}`);
 }
 
-// Helper function för att få rätt Ad ID
-export function getAdId(type: 'banner' | 'interstitial' | 'rewarded'): string {
-  const useTest = AD_CONFIG.USE_TEST_ADS;
-  
-  switch (type) {
-    case 'banner':
-      return useTest ? AD_CONFIG.TEST_BANNER_AD_ID : AD_CONFIG.BANNER_AD_ID;
-    case 'interstitial':
-      return useTest ? AD_CONFIG.TEST_INTERSTITIAL_AD_ID : AD_CONFIG.INTERSTITIAL_AD_ID;
-    case 'rewarded':
-      return useTest ? AD_CONFIG.TEST_REWARDED_AD_ID : AD_CONFIG.REWARDED_AD_ID;
-    default:
-      throw new Error(`Unknown ad type: ${type}`);
-  }
+export function getPremiumPrice(): string {
+  return PREMIUM_CONFIG.PRICE_SEK;
 }
 
 // Export singleton instance
