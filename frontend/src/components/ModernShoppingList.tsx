@@ -16,6 +16,7 @@ import { customCategories, type CustomCategory } from '../utils/customCategories
 import { allCategoriesManager, type EditableCategory } from '../utils/allCategoriesManager.js';
 import { adManager } from '../utils/adManager.js';
 import { isPremiumUser } from '../utils/pwa.js';
+import { sessionManager, SessionManager } from '../utils/sessionManager.js';
 
 interface CategoryRowProps {
   category: Category;
@@ -280,6 +281,12 @@ export const ModernShoppingList: React.FC = () => {
   const [currentListName, setCurrentListName] = useState('');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showFallbackBanner, setShowFallbackBanner] = useState(false);
+  const [showJoinListDialog, setShowJoinListDialog] = useState(false);
+  const [joinListCode, setJoinListCode] = useState('');
+  const [showCreateListCodeDialog, setShowCreateListCodeDialog] = useState(false);
+  const [createListCode, setCreateListCode] = useState('');
+  const [showGeneratedCode, setShowGeneratedCode] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState('');
 
   // Debug logging
   
@@ -435,6 +442,141 @@ export const ModernShoppingList: React.FC = () => {
       message: 'Ny tom lista skapad',
       duration: 3000
     });
+  };
+
+  const joinList = async () => {
+    if (!joinListCode.trim()) {
+      showToast({
+        type: 'error',
+        title: 'Fel',
+        message: 'Vänligen ange en listkod',
+        duration: 3000
+      });
+      return;
+    }
+
+    const code = joinListCode.trim().toLowerCase();
+
+    // Check if it's a full namespaced code (includes device suffix)
+    const isFullCode = code.includes('-') && code.split('-').pop()?.length === 8;
+
+    try {
+      if (isFullCode) {
+        // User provided full technical code - join existing shared list
+        (sessionManager as any).joinExistingList(code);
+        showToast({
+          type: 'success',
+          title: 'Ansluten!',
+          message: `Du har anslutit till den delade listan`,
+          duration: 3000
+        });
+      } else {
+        // User provided only display code - create new unique session
+        const validation = SessionManager.validateListCode(code);
+        if (!validation.valid) {
+          showToast({
+            type: 'error',
+            title: 'Ogiltig listkod',
+            message: validation.error || 'Listkoden är inte giltig',
+            duration: 3000
+          });
+          return;
+        }
+
+        sessionManager.setCustomListCode(code);
+        showToast({
+          type: 'info',
+          title: 'Ny lista skapad',
+          message: `OBS: För att dela listan med andra, ge dem hela koden: ${sessionManager.getSessionId()}`,
+          duration: 8000
+        });
+      }
+
+      setJoinListCode('');
+      setShowJoinListDialog(false);
+      setTodos([]);
+
+      // Reload the page to fetch todos from new session
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Fel',
+        message: error instanceof Error ? error.message : 'Kunde inte ansluta till listan',
+        duration: 3000
+      });
+    }
+  };
+
+  const generateRandomCode = () => {
+    const adjectives = ['glad', 'snabb', 'cool', 'super', 'bra', 'fin', 'rolig', 'smart'];
+    const nouns = ['lista', 'korg', 'handla', 'familj', 'grupp', 'team', 'plan', 'mat'];
+    const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+    const randomNum = Math.floor(Math.random() * 999);
+    return `${randomAdj}-${randomNoun}-${randomNum}`;
+  };
+
+  const createCustomListCode = async (autoGenerate = false) => {
+    let codeToCreate = createListCode.trim();
+
+    if (autoGenerate) {
+      codeToCreate = generateRandomCode();
+    } else if (!codeToCreate) {
+      showToast({
+        type: 'error',
+        title: 'Fel',
+        message: 'Vänligen ange en listkod',
+        duration: 3000
+      });
+      return;
+    }
+
+    const validation = SessionManager.validateListCode(codeToCreate);
+    if (!validation.valid) {
+      showToast({
+        type: 'error',
+        title: 'Ogiltig listkod',
+        message: validation.error || 'Listkoden är inte giltig',
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      sessionManager.setCustomListCode(codeToCreate);
+      const sessionInfo = sessionManager.getSessionInfo();
+
+      // Show the generated code immediately
+      setGeneratedCode(sessionInfo.displayCode || codeToCreate);
+      setShowGeneratedCode(true);
+      setCreateListCode('');
+      setShowCreateListCodeDialog(false);
+
+      // Also show a toast for quick visibility
+      showToast({
+        type: 'success',
+        title: 'Listkod skapad!',
+        message: `Din lista är nu tillgänglig med koden: ${codeToCreate}`,
+        duration: 8000
+      });
+
+      // Update todos after a short delay to let the session establish
+      setTimeout(() => {
+        loadTodos();
+      }, 500);
+
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Fel',
+        message: error instanceof Error ? error.message : 'Kunde inte skapa listkod',
+        duration: 3000
+      });
+    }
   };
 
   // Load saved lists on mount
@@ -921,6 +1063,116 @@ export const ModernShoppingList: React.FC = () => {
                   <div>{t.newList}</div>
                   <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
                     Skapa ny tom lista
+                  </div>
+                </div>
+              </button>
+
+              {/* Join List */}
+              <button
+                onClick={() => {
+                  setShowJoinListDialog(true);
+                  setShowMenu(false);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  margin: '0 0 8px 0',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '16px',
+                  color: 'white',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  transition: 'all 0.2s ease',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  backgroundColor: 'rgba(249, 115, 22, 0.2)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <span style={{ fontSize: '18px', color: '#f97316' }}>🔗</span>
+                </div>
+                <div>
+                  <div>Gå med i lista</div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
+                    Ange listkod för delning
+                  </div>
+                </div>
+              </button>
+
+              {/* Create/Show List Code */}
+              <button
+                onClick={() => {
+                  const currentSession = sessionManager.getSessionInfo();
+                  if (currentSession.isCustomListCode) {
+                    // Show current list code in a modal
+                    setGeneratedCode(currentSession.displayCode || currentSession.sessionId.split('-')[0]);
+                    setShowGeneratedCode(true);
+                  } else {
+                    // Auto-generate and create immediately
+                    createCustomListCode(true);
+                  }
+                  setShowMenu(false);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  margin: '0 0 8px 0',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '16px',
+                  color: 'white',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  transition: 'all 0.2s ease',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  backgroundColor: 'rgba(139, 69, 19, 0.2)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <span style={{ fontSize: '18px', color: '#8b4513' }}>📋</span>
+                </div>
+                <div>
+                  <div>{sessionManager.getSessionInfo().isCustomListCode ? 'Visa listkod' : 'Skapa listkod'}</div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
+                    {sessionManager.getSessionInfo().isCustomListCode ? `Kod: ${sessionManager.getSessionInfo().displayCode || 'okänd'}` : 'För delning med andra'}
                   </div>
                 </div>
               </button>
@@ -1577,7 +1829,477 @@ export const ModernShoppingList: React.FC = () => {
         </div>
       )}
 
-      <AddItemModal 
+      {/* Join List Dialog */}
+      {showJoinListDialog && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1100
+        }}>
+          <div style={{
+            backgroundColor: '#1e293b',
+            borderRadius: '12px',
+            padding: '24px',
+            width: '350px',
+            maxWidth: '90vw'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px'
+            }}>
+              <h3 style={{
+                color: 'white',
+                fontSize: '18px',
+                fontWeight: '600',
+                margin: 0
+              }}>
+                Gå med i lista
+              </h3>
+              <button
+                onClick={() => {
+                  setShowJoinListDialog(false);
+                  setJoinListCode('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: '20px',
+                  cursor: 'pointer'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.7)',
+              fontSize: '14px',
+              marginBottom: '16px',
+              lineHeight: '1.4'
+            }}>
+              Ange listkoden som du fått från någon annan för att få tillgång till deras lista.
+            </p>
+
+            <input
+              type="text"
+              value={joinListCode}
+              onChange={(e) => setJoinListCode(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  joinList();
+                }
+              }}
+              placeholder="t.ex. familjen-handlar"
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                color: 'white',
+                fontSize: '14px',
+                marginBottom: '20px',
+                outline: 'none'
+              }}
+            />
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '12px'
+            }}>
+              <button
+                onClick={() => {
+                  setShowJoinListDialog(false);
+                  setJoinListCode('');
+                }}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: 'white',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                }}
+              >
+                Avbryt
+              </button>
+              <button
+                onClick={joinList}
+                disabled={!joinListCode.trim()}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: joinListCode.trim() ? '#f97316' : 'rgba(255, 255, 255, 0.1)',
+                  color: 'white',
+                  fontSize: '14px',
+                  cursor: joinListCode.trim() ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.2s ease',
+                  opacity: joinListCode.trim() ? 1 : 0.5
+                }}
+                onMouseEnter={(e) => {
+                  if (joinListCode.trim()) {
+                    e.currentTarget.style.backgroundColor = '#ea580c';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (joinListCode.trim()) {
+                    e.currentTarget.style.backgroundColor = '#f97316';
+                  }
+                }}
+              >
+                Gå med
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create List Code Dialog */}
+      {showCreateListCodeDialog && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1100
+        }}>
+          <div style={{
+            backgroundColor: '#1e293b',
+            borderRadius: '12px',
+            padding: '24px',
+            width: '350px',
+            maxWidth: '90vw'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px'
+            }}>
+              <h3 style={{
+                color: 'white',
+                fontSize: '18px',
+                fontWeight: '600',
+                margin: 0
+              }}>
+                Skapa listkod
+              </h3>
+              <button
+                onClick={() => {
+                  setShowCreateListCodeDialog(false);
+                  setCreateListCode('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: '20px',
+                  cursor: 'pointer'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.7)',
+              fontSize: '14px',
+              marginBottom: '16px',
+              lineHeight: '1.4'
+            }}>
+              Skapa en unik listkod som du kan dela med familj och vänner för att komma åt samma inköpslista.
+            </p>
+
+            <input
+              type="text"
+              value={createListCode}
+              onChange={(e) => setCreateListCode(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  createCustomListCode();
+                }
+              }}
+              placeholder="t.ex. familjen-handlar"
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                color: 'white',
+                fontSize: '14px',
+                marginBottom: '8px',
+                outline: 'none'
+              }}
+            />
+
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.5)',
+              fontSize: '12px',
+              marginBottom: '20px',
+              lineHeight: '1.3'
+            }}>
+              Endast bokstäver, siffror och bindestreck. Minst 3 tecken.
+            </p>
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '12px'
+            }}>
+              <button
+                onClick={() => {
+                  setShowCreateListCodeDialog(false);
+                  setCreateListCode('');
+                }}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: 'white',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                }}
+              >
+                Avbryt
+              </button>
+              <button
+                onClick={() => createCustomListCode(false)}
+                disabled={!createListCode.trim()}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: createListCode.trim() ? '#8b4513' : 'rgba(255, 255, 255, 0.1)',
+                  color: 'white',
+                  fontSize: '14px',
+                  cursor: createListCode.trim() ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.2s ease',
+                  opacity: createListCode.trim() ? 1 : 0.5
+                }}
+                onMouseEnter={(e) => {
+                  if (createListCode.trim()) {
+                    e.currentTarget.style.backgroundColor = '#a0522d';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (createListCode.trim()) {
+                    e.currentTarget.style.backgroundColor = '#8b4513';
+                  }
+                }}
+              >
+                Skapa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Display Generated Code Modal */}
+      {showGeneratedCode && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10001,
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}>
+          <div style={{
+            backgroundColor: 'rgba(30, 58, 138, 0.95)',
+            borderRadius: '20px',
+            padding: '24px',
+            width: '90%',
+            maxWidth: '400px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px'
+            }}>
+              <h3 style={{
+                color: 'white',
+                fontSize: '18px',
+                fontWeight: '600',
+                margin: 0
+              }}>
+                Din listkod
+              </h3>
+              <button
+                onClick={() => setShowGeneratedCode(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  padding: '0',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.8)',
+              fontSize: '14px',
+              marginBottom: '20px'
+            }}>
+              Dela denna kod med familj och vänner så kan ni redigera samma lista tillsammans.
+            </p>
+
+            <div style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '20px',
+              textAlign: 'center',
+              border: '2px solid rgba(139, 69, 19, 0.5)'
+            }}>
+              <div style={{
+                fontSize: '24px',
+                fontWeight: '600',
+                color: '#fbbf24',
+                letterSpacing: '2px',
+                marginBottom: '8px',
+                fontFamily: 'monospace'
+              }}>
+                {generatedCode}
+              </div>
+              <div style={{
+                fontSize: '12px',
+                color: 'rgba(255, 255, 255, 0.6)'
+              }}>
+                Klicka för att kopiera
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(generatedCode);
+                showToast({
+                  type: 'success',
+                  title: 'Kopierad!',
+                  message: 'Listkoden har kopierats till urklipp',
+                  duration: 3000
+                });
+              }}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: '#8b4513',
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#a0522d';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#8b4513';
+              }}
+            >
+              Kopiera till urklipp
+            </button>
+
+            <button
+              onClick={() => {
+                const shareUrl = `${window.location.origin}?lista=${generatedCode}`;
+                navigator.clipboard.writeText(shareUrl);
+                showToast({
+                  type: 'success',
+                  title: 'Länk kopierad!',
+                  message: 'Delningslänken har kopierats',
+                  duration: 3000
+                });
+              }}
+              style={{
+                width: '100%',
+                padding: '12px',
+                marginTop: '8px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                fontSize: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+              }}
+            >
+              Kopiera delningslänk
+            </button>
+          </div>
+        </div>
+      )}
+
+      <AddItemModal
         isOpen={isAddModalOpen}
         onClose={() => {
           setIsAddModalOpen(false);

@@ -6,7 +6,7 @@
     android:viewportHeight="108"
     android:viewportWidth="108">
 
-    <!-- Blue gradient background -->
+    <!-- Dark blue gradient background -->
     <path android:pathData="M0,0h108v108h-108z">
         <aapt:attr name="android:fillColor">
             <gradient
@@ -16,10 +16,10 @@
                 android:endY="108"
                 android:type="linear">
                 <item
-                    android:color="#4A90E2"
+                    android:color="#001122"
                     android:offset="0.0" />
                 <item
-                    android:color="#357ABD"
+                    android:color="#1e3a8a"
                     android:offset="1.0" />
             </gradient>
         </aapt:attr>

@@ -17,11 +17,13 @@ export interface SessionInfo {
   sessionId: string;
   isCustomListCode: boolean;
   listName?: string;
+  displayCode?: string; // User-friendly code without device suffix
 }
 
 class SessionManager {
   private currentSessionId: string;
   private isCustomListCode: boolean = false;
+  private displayCode: string | null = null;
   private listeners: ((sessionInfo: SessionInfo) => void)[] = [];
 
   constructor() {
@@ -32,8 +34,11 @@ class SessionManager {
   private initializeSession(): string {
     // Check för manuell lista-kod först
     const customListCode = localStorage.getItem(CUSTOM_LIST_CODE_KEY);
+    const displayCode = localStorage.getItem('zhoplist-display-code');
+
     if (customListCode) {
       this.isCustomListCode = true;
+      this.displayCode = displayCode; // Ladda den användarvänliga koden
       return customListCode;
     }
 
@@ -48,6 +53,7 @@ class SessionManager {
     }
 
     this.isCustomListCode = false;
+    this.displayCode = null;
     return sessionId;
   }
 
@@ -66,7 +72,49 @@ class SessionManager {
       sessionId: this.currentSessionId,
       isCustomListCode: this.isCustomListCode,
       listName: this.isCustomListCode ? this.currentSessionId : undefined,
+      displayCode: this.displayCode || undefined,
     };
+  }
+
+  /**
+   * Generera en unik enhets-ID som är persistent
+   */
+  private getOrCreateDeviceId(): string {
+    const DEVICE_ID_KEY = 'zhoplist-device-id';
+    let deviceId = localStorage.getItem(DEVICE_ID_KEY);
+    if (!deviceId) {
+      deviceId = uuidv4();
+      localStorage.setItem(DEVICE_ID_KEY, deviceId);
+    }
+    return deviceId;
+  }
+
+  /**
+   * Skapa en unik session ID som inkluderar både listkod och enhets-ID
+   */
+  private createNamespacedId(listCode: string, deviceId: string): string {
+    // Använd de sista 8 tecknen av device ID för att skapa en kort, unik suffix
+    const shortDeviceId = deviceId.replace(/-/g, '').slice(-8);
+    return `${listCode}-${shortDeviceId}`;
+  }
+
+  /**
+   * Join an existing list using a full technical code
+   */
+  joinExistingList(fullCode: string): void {
+    // Extract display code from full technical code
+    const parts = fullCode.split('-');
+    const displayCode = parts.length > 1 ? parts.slice(0, -1).join('-') : fullCode;
+
+    this.currentSessionId = fullCode;
+    this.displayCode = displayCode;
+    this.isCustomListCode = true;
+
+    localStorage.setItem(CUSTOM_LIST_CODE_KEY, fullCode);
+    localStorage.setItem('zhoplist-display-code', displayCode);
+
+    console.log('🆔 Anslöt till existerande lista:', fullCode, '(visas som:', displayCode, ')');
+    this.notifyListeners();
   }
 
   /**
@@ -78,7 +126,7 @@ class SessionManager {
     }
 
     const cleanListCode = listCode.trim().toLowerCase();
-    
+
     // Validera lista-kod (endast bokstäver, siffror, bindestreck)
     if (!/^[a-z0-9-]+$/.test(cleanListCode)) {
       throw new Error('Lista-kod får endast innehålla bokstäver, siffror och bindestreck');
@@ -88,13 +136,19 @@ class SessionManager {
       throw new Error('Lista-kod måste vara minst 3 tecken');
     }
 
-    this.currentSessionId = cleanListCode;
+    // Skapa en unik session ID som kombinerar listkod och enhets-ID
+    const deviceId = this.getOrCreateDeviceId();
+    const namespacedId = this.createNamespacedId(cleanListCode, deviceId);
+
+    this.currentSessionId = namespacedId;
+    this.displayCode = cleanListCode; // Spara den användarvänliga koden separat
     this.isCustomListCode = true;
 
-    // Spara båda alternativen
-    localStorage.setItem(CUSTOM_LIST_CODE_KEY, cleanListCode);
-    
-    console.log('🆔 Bytte till manuell lista-kod:', cleanListCode);
+    // Spara den tekniska ID:n
+    localStorage.setItem(CUSTOM_LIST_CODE_KEY, namespacedId);
+    localStorage.setItem('zhoplist-display-code', cleanListCode);
+
+    console.log('🆔 Skapade unik lista-kod:', namespacedId, '(visas som:', cleanListCode, ')');
     this.notifyListeners();
   }
 
@@ -103,7 +157,8 @@ class SessionManager {
    */
   clearCustomListCode(): void {
     localStorage.removeItem(CUSTOM_LIST_CODE_KEY);
-    
+    localStorage.removeItem('zhoplist-display-code');
+
     // Återgå till sparad automatisk sessionID
     let autoSessionId = localStorage.getItem(SESSION_STORAGE_KEY);
     if (!autoSessionId) {
@@ -113,6 +168,7 @@ class SessionManager {
 
     this.currentSessionId = autoSessionId;
     this.isCustomListCode = false;
+    this.displayCode = null;
 
     console.log('🆔 Bytte tillbaka till automatisk sessionID:', autoSessionId);
     this.notifyListeners();
