@@ -76,6 +76,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({
               text-white
               transition-all duration-200
               border-2 border-white/20
+              
             "
             title="Lägg till vara"
           >

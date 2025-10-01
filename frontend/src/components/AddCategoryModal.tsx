@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Palette, Hash } from 'lucide-react';
+import { X, Palette, Hash, Plus, Minus } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface AddCategoryModalProps {
@@ -140,6 +140,8 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   const [selectedColor, setSelectedColor] = useState(DEFAULT_COLORS[0]);
   const [selectedIcon, setSelectedIcon] = useState(ICON_TYPES[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAllIcons, setShowAllIcons] = useState(false);
+  const [showAllColors, setShowAllColors] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,7 +226,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
                 Välj ikon
               </label>
               <div className="grid grid-cols-6 gap-3">
-                {ICON_TYPES.map((iconType, index) => (
+                {(showAllIcons ? ICON_TYPES : ICON_TYPES.slice(0, 5)).map((iconType, index) => (
                   <button
                     key={index}
                     type="button"
@@ -240,6 +242,18 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
                     <CustomIcon type={iconType} color={selectedIcon === iconType ? 'white' : selectedColor} />
                   </button>
                 ))}
+                {/* Show More/Less Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowAllIcons(!showAllIcons)}
+                  className="aspect-square rounded-lg flex items-center justify-center transition-all touch-target bg-gray-800/50 hover:bg-gray-700 border-2 border-dashed border-gray-600"
+                >
+                  {showAllIcons ? (
+                    <Minus className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <Plus className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -250,7 +264,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
                 Välj färg
               </label>
               <div className="grid grid-cols-10 gap-2">
-                {DEFAULT_COLORS.map((color, index) => (
+                {(showAllColors ? DEFAULT_COLORS : DEFAULT_COLORS.slice(0, 9)).map((color, index) => (
                   <button
                     key={index}
                     type="button"
@@ -265,6 +279,18 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
                     style={{ backgroundColor: color }}
                   />
                 ))}
+                {/* Show More/Less Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowAllColors(!showAllColors)}
+                  className="aspect-square rounded-lg flex items-center justify-center transition-all touch-target bg-gray-800/50 hover:bg-gray-700 border-2 border-dashed border-gray-600"
+                >
+                  {showAllColors ? (
+                    <Minus className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <Plus className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
               </div>
             </div>
 
