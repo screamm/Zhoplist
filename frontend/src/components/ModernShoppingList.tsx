@@ -249,13 +249,14 @@ export const ModernShoppingList: React.FC = () => {
     filteredTodos,
     // createTodo, // Not used anymore with mock data removed
     setTodos,
-    showToast, 
-    toggleTodo, 
+    showToast,
+    toggleTodo,
     deleteCompleted,
     state,
     toggleViewMode,
     uncrossedCount,
-    completedCount
+    completedCount,
+    loadTodos
   } = useTodo();
   const { t, language, setLanguage } = useLanguage();
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
@@ -463,7 +464,7 @@ export const ModernShoppingList: React.FC = () => {
     try {
       if (isFullCode) {
         // User provided full technical code - join existing shared list
-        (sessionManager as any).joinExistingList(code);
+        (sessionManager as SessionManager).joinExistingList(code);
         showToast({
           type: 'success',
           title: 'Ansluten!',
@@ -669,8 +670,8 @@ export const ModernShoppingList: React.FC = () => {
       {/* Header */}
       <div style={{
         padding: '0 16px',
-        paddingTop: isPremiumUser() ? '48px' : '98px', // Extra plats för AdMob banner
-        paddingBottom: '24px',
+        paddingTop: isPremiumUser() ? '48px' : '78px', // Extra plats för AdMob banner
+        paddingBottom: '4px',
         borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
       }}>
         {/* AdMob banner visas högst upp automatiskt via TOP_CENTER position */}

@@ -11,7 +11,7 @@ class Logger {
   /**
    * Development-only logging - removed in production
    */
-  debug(message: string, ...args: any[]) {
+  debug(message: string, ...args: unknown[]) {
     if (this.isDevelopment) {
       console.log(message, ...args);
     }
@@ -20,21 +20,21 @@ class Logger {
   /**
    * Important system information - always shown
    */
-  info(message: string, ...args: any[]) {
+  info(message: string, ...args: unknown[]) {
     console.log(message, ...args);
   }
 
   /**
    * Warnings - always shown
    */
-  warn(message: string, ...args: any[]) {
+  warn(message: string, ...args: unknown[]) {
     console.warn(message, ...args);
   }
 
   /**
    * Errors - always shown
    */
-  error(message: string, ...args: any[]) {
+  error(message: string, ...args: unknown[]) {
     console.error(message, ...args);
   }
 

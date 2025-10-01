@@ -1,0 +1,41 @@
+
+> frontend@1.9.1 lint
+> eslint .
+
+
+C:\Users\david\Documents\FSU23D\Egna Projekt\Inkopslista\frontend\android\app\build\intermediates\assets\release\mergeReleaseAssets\native-bridge.js
+    36:5   warning  Unused eslint-disable directive (no problems were reported)
+   208:29  warning  Unused eslint-disable directive (no problems were reported from 'no-prototype-builtins')
+  1003:13  error    Definition for rule '@typescript-eslint/no-unused-vars' was not found                     @typescript-eslint/no-unused-vars
+
+C:\Users\david\Documents\FSU23D\Egna Projekt\Inkopslista\frontend\src\components\CategoryIcons.tsx
+  148:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\david\Documents\FSU23D\Egna Projekt\Inkopslista\frontend\src\context\LanguageContext.tsx
+  246:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\david\Documents\FSU23D\Egna Projekt\Inkopslista\frontend\src\context\TodoContext.tsx
+  579:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\david\Documents\FSU23D\Egna Projekt\Inkopslista\frontend\src\types\categories.ts
+  147:12  error  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\david\Documents\FSU23D\Egna Projekt\Inkopslista\frontend\src\utils\adManager.ts
+  124:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\david\Documents\FSU23D\Egna Projekt\Inkopslista\frontend\src\utils\logger.ts
+  14:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  30:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 12 problems (7 errors, 5 warnings)
+  0 errors and 2 warnings potentially fixable with the `--fix` option.
+
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path C:\Users\david\Documents\FSU23D\Egna Projekt\Inkopslista\frontend
+npm error workspace frontend@1.9.1
+npm error location C:\Users\david\Documents\FSU23D\Egna Projekt\Inkopslista\frontend
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c eslint .

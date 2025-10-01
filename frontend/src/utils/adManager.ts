@@ -113,7 +113,7 @@ export class AdManager {
       const { AdMob, BannerAdSize, BannerAdPosition } =
         await import('@capacitor-community/admob');
 
-      const options: Record<string, unknown> = {
+      const options = {
         adId: AD_CONFIG.USE_TEST_ADS ? AD_CONFIG.TEST_BANNER_AD_ID : AD_CONFIG.BANNER_AD_ID,
         adSize: BannerAdSize.ADAPTIVE_BANNER,
         position: BannerAdPosition.TOP_CENTER,
@@ -121,7 +121,7 @@ export class AdManager {
         isTesting: AD_CONFIG.USE_TEST_ADS,
       };
 
-      await (AdMob.showBanner as any)(options);
+      await AdMob.showBanner(options);
       this.bannerVisible = true;
       this.adMobFailed = false;
       console.log('Banner ad displayed');

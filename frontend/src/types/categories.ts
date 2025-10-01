@@ -122,15 +122,16 @@ export const SHOPPING_CATEGORIES: Category[] = [
   }
 ];
 
-export const getCategoryById = (id: string): Category | undefined => {
+export const getCategoryById = async (id: string): Promise<Category | undefined> => {
   // First check default categories
   const defaultCategory = SHOPPING_CATEGORIES.find(cat => cat.id === id);
   if (defaultCategory) return defaultCategory;
   
   // Then check custom categories
   try {
-    const { customCategories } = require('../utils/customCategories');
-    const customCategory = customCategories.findCategory(id);
+    // Dynamic import to avoid circular dependency
+    const customCategoriesModule = await import('../utils/customCategories');
+    const customCategory = customCategoriesModule.customCategories.findCategory(id);
     if (customCategory) {
       // Convert CustomCategory to Category format
       return {
@@ -143,19 +144,19 @@ export const getCategoryById = (id: string): Category | undefined => {
         order: customCategory.order
       };
     }
-  } catch (error) {
+  } catch {
     // Ignore error if customCategories not available
   }
   
   return undefined;
 };
 
-export const getCategoryColor = (categoryId: string): string => {
-  const category = getCategoryById(categoryId);
+export const getCategoryColor = async (categoryId: string): Promise<string> => {
+  const category = await getCategoryById(categoryId);
   return category?.color || '#6B7280';
 };
 
-export const getCategoryIcon = (categoryId: string): string => {
-  const category = getCategoryById(categoryId);
+export const getCategoryIcon = async (categoryId: string): Promise<string> => {
+  const category = await getCategoryById(categoryId);
   return category?.icon || '📋';
 };

@@ -26,6 +26,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [pendingItem, setPendingItem] = useState<{title: string, quantity: number} | null>(null);
+  const [selectedCategoryData, setSelectedCategoryData] = useState<any>(null);
 
   const autocompleteRef = useRef<SmartAutocompleteRef>(null);
 
@@ -37,6 +38,15 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
       setCategory('');
     }
   }, [defaultCategory, isOpen]);
+
+  // Load selected category data asynchronously
+  useEffect(() => {
+    if (category) {
+      getCategoryById(category).then(data => setSelectedCategoryData(data));
+    } else {
+      setSelectedCategoryData(null);
+    }
+  }, [category]);
 
   // Auto-focus input when modal opens
   useEffect(() => {
@@ -231,8 +241,6 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
   }, [isOpen]);
 
   if (!isOpen) return null;
-
-  const selectedCategoryData = category ? getCategoryById(category) : null;
 
   return (
     <div 

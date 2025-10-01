@@ -24,7 +24,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({
     <div className={`
       fixed bottom-0 left-0 right-0 z-40
       bg-white/10 backdrop-blur-xl border-t border-white/20
-      px-4 py-3 safe-area-bottom bottom-nav-container
+      pt-4 pb-8 py-3 safe-area-bottom bottom-nav-container
       ${className}
     `}>
       <div className="grid grid-cols-3 gap-4 items-center max-w-lg mx-auto">
@@ -66,7 +66,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({
           <button
             onClick={onAddItem}
             className="
-              w-14 h-14 
+              w-16 h-16 
               bg-gradient-to-r from-cyan-400 to-cyan-500
               hover:from-cyan-500 hover:to-cyan-600
               active:scale-95
