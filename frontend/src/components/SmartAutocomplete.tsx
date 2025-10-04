@@ -1,9 +1,10 @@
-// Smart Autocomplete Komponent med svensk produktdatabas
+// Smart Autocomplete Komponent med språkstöd för produktdatabaser
 import { useState, useEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { smartAutocomplete, type Suggestion } from '../utils/smartAutocomplete';
 import { DEFAULT_CATEGORIES } from '../data/swedishProducts';
 import { getCategoryIcon as getCategoryIconSVG } from './CategoryIcons';
 import { SHOPPING_CATEGORIES } from '../types/categories';
+import type { Language } from '../context/LanguageContext';
 
 interface SmartAutocompleteProps {
   value: string;
@@ -14,6 +15,7 @@ interface SmartAutocompleteProps {
   disabled?: boolean;
   showCategoryHints?: boolean;
   maxSuggestions?: number;
+  language?: Language;
 }
 
 export interface SmartAutocompleteRef {
@@ -28,7 +30,8 @@ export const SmartAutocomplete = forwardRef<SmartAutocompleteRef, SmartAutocompl
   className = '',
   disabled = false,
   showCategoryHints = true,
-  maxSuggestions = 6
+  maxSuggestions = 6,
+  language = 'en'
 }, ref) => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -62,7 +65,7 @@ export const SmartAutocomplete = forwardRef<SmartAutocompleteRef, SmartAutocompl
       if (value.length >= 1) { // Visa bara förslag när användaren börjat skriva
         setIsLoading(true);
 
-        const newSuggestions = smartAutocomplete.getSuggestions(value);
+        const newSuggestions = smartAutocomplete.getSuggestions(value, language);
 
         setSuggestions(newSuggestions.slice(0, maxSuggestions));
         setIsLoading(false);
@@ -79,7 +82,7 @@ export const SmartAutocomplete = forwardRef<SmartAutocompleteRef, SmartAutocompl
     }, 150); // 150ms debounce för smooth typing
 
     return () => clearTimeout(timeoutId);
-  }, [value, maxSuggestions, justSelected, hasFocus]);
+  }, [value, maxSuggestions, justSelected, hasFocus, language]);
 
   // Stäng dropdown när man klickar utanför
   useEffect(() => {

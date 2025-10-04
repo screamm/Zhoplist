@@ -123,8 +123,8 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
         <div className="px-6 py-4 border-b border-gray-800">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-white">Redigera kategori</h2>
-              <p className="text-sm text-gray-400 mt-1">Ändra namn, ikon eller färg för din kategori</p>
+              <h2 className="text-xl font-bold text-white">{t.editCategory}</h2>
+              <p className="text-sm text-gray-400 mt-1">{t.editCategoryDescription}</p>
             </div>
             <button
               onClick={handleClose}
@@ -143,11 +143,10 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
               <div className="bg-red-900/20 border border-red-700/50 rounded-2xl p-4 mb-4">
                 <div className="flex items-center space-x-3 mb-3">
                   <Trash2 className="w-5 h-5 text-red-400" />
-                  <h3 className="text-red-400 font-medium">Ta bort kategori?</h3>
+                  <h3 className="text-red-400 font-medium">{t.deleteCategoryConfirm}</h3>
                 </div>
                 <p className="text-sm text-gray-300 mb-4">
-                  Är du säker på att du vill ta bort kategorin "{category.name}"? 
-                  Denna åtgärd kan inte ångras och alla varor i kategorin kommer att försvinna.
+                  {t.deleteCategoryWarning} "{category.name}"?
                 </p>
                 <div className="flex space-x-3">
                   <button
@@ -155,14 +154,14 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
                     onClick={handleDelete}
                     className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-500 transition-colors font-medium"
                   >
-                    Ja, ta bort
+                    {t.yesDelete}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(false)}
                     className="flex-1 px-4 py-2 bg-gray-700 text-gray-300 rounded-xl hover:bg-gray-600 transition-colors font-medium"
                   >
-                    Avbryt
+                    {t.cancel}
                   </button>
                 </div>
               </div>
@@ -171,14 +170,14 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
             {/* Category Name with Preview */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
-                Kategorinamn *
+                {t.categoryName} *
               </label>
               <div className="flex items-center space-x-3">
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="t.ex. Husdjur, Sport, Elektronik"
+                  placeholder={t.categoryPlaceholder}
                   className="flex-1 px-4 py-4 bg-gray-800/50 border border-gray-600 rounded-2xl text-white placeholder-gray-500 focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all text-base touch-target"
                   maxLength={20}
                   autoFocus
@@ -191,14 +190,14 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
                   <IconDisplay iconType={selectedIcon} color={selectedColor} />
                 </div>
               </div>
-              <p className="text-xs text-gray-500">{name.length}/20 tecken</p>
+              <p className="text-xs text-gray-500">{name.length}/20 {t.charactersRemaining}</p>
             </div>
 
             {/* Icon Selection */}
             <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-300">
                 <Hash className="w-4 h-4 inline mr-1" />
-                Välj ikon
+                {t.chooseIcon}
               </label>
               <div className="grid grid-cols-6 gap-3">
                 {ICON_TYPES.map((iconType, index) => (
@@ -224,7 +223,7 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
             <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-300">
                 <Palette className="w-4 h-4 inline mr-1" />
-                Välj färg
+                {t.chooseColor}
               </label>
               <div className="grid grid-cols-10 gap-2">
                 {DEFAULT_COLORS.map((color, index) => (
@@ -257,7 +256,7 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
                 className="px-4 py-4 bg-red-600/20 text-red-400 rounded-2xl hover:bg-red-600/30 transition-all font-medium touch-target flex items-center space-x-2"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>Ta bort</span>
+                <span>{t.deleteCategory}</span>
               </button>
             )}
             <button
@@ -266,7 +265,7 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
               className="flex-1 px-4 py-4 bg-gray-800/50 text-gray-300 rounded-2xl hover:bg-gray-700 transition-all font-medium touch-target"
               disabled={isSubmitting}
             >
-              Avbryt
+              {t.cancel}
             </button>
             <button
               type="submit"
@@ -276,10 +275,10 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
               {isSubmitting ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block mr-2"></div>
-                  Uppdaterar...
+                  {t.updating}...
                 </>
               ) : (
-                'Spara ändringar'
+                t.saveChanges
               )}
             </button>
           </div>

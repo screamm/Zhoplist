@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Sparkles } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface SplashScreenProps {
   onFinish: () => void;
   duration?: number;
 }
 
-export const SplashScreen: React.FC<SplashScreenProps> = ({ 
-  onFinish, 
-  duration = 2500 
+export const SplashScreen: React.FC<SplashScreenProps> = ({
+  onFinish,
+  duration = 2500
 }) => {
+  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
@@ -61,7 +63,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       
       {/* Tagline */}
       <p className="text-gray-400 text-lg animate-slideUp">
-        Din smarta handlingslista
+        {t.appTagline}
       </p>
     </div>
   );

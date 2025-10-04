@@ -1,7 +1,8 @@
 // Smart Autocomplete med Machine Learning och användarhistorik
 import Fuse from 'fuse.js';
-import { PRODUCT_DATABASE, getCategoryForProduct, type Product } from '../data/swedishProducts';
 import { customProducts } from './customProducts';
+import { getProductDatabase, type Product } from './productManager';
+import type { Language } from '../context/LanguageContext';
 
 export interface Suggestion {
   name: string;
@@ -35,23 +36,35 @@ const FUSE_OPTIONS = {
 };
 
 export class SmartAutocomplete {
-  private fuse: Fuse<Product>;
+  private fuse: Fuse<Product> | null = null;
   private userHistory: Map<string, UserHistory[string]>;
   private readonly STORAGE_KEY = 'zhoplist_user_history';
   private readonly MAX_SUGGESTIONS = 6;
   private readonly HISTORY_WEIGHT = 2.0; // Multiplier för historiska träffar
+  private currentLanguage: Language = 'en';
 
   constructor() {
-    this.fuse = new Fuse(PRODUCT_DATABASE, FUSE_OPTIONS);
     this.userHistory = new Map();
     this.loadUserHistory();
   }
 
+  // Initialize or update Fuse with language-specific database
+  private initializeFuse(language: Language): void {
+    if (this.currentLanguage !== language || !this.fuse) {
+      const db = getProductDatabase(language);
+      this.fuse = new Fuse(db.PRODUCT_DATABASE, FUSE_OPTIONS);
+      this.currentLanguage = language;
+    }
+  }
+
   // Huvudfunktion - returnerar förslag baserat på input
-  getSuggestions(input: string): Suggestion[] {
+  getSuggestions(input: string, language: Language = 'en'): Suggestion[] {
     if (!input || input.length < 1) {
       return []; // Returnera inga förslag när input är tomt
     }
+
+    // Initialize Fuse with correct language database
+    this.initializeFuse(language);
 
     const normalizedInput = input.toLowerCase().trim();
     const suggestions: Suggestion[] = [];
@@ -61,11 +74,11 @@ export class SmartAutocomplete {
     suggestions.push(...customResults);
 
     // 2. Fuzzy search i produktdatabas
-    const fuzzyResults = this.getFuzzyMatches(normalizedInput);
+    const fuzzyResults = this.getFuzzyMatches(normalizedInput, language);
     suggestions.push(...fuzzyResults);
 
     // 3. Sök i användarhistorik
-    const historyResults = this.getHistoryMatches(normalizedInput);
+    const historyResults = this.getHistoryMatches(normalizedInput, language);
     suggestions.push(...historyResults);
 
     // 4. Kombinera och ranka resultaten
@@ -73,7 +86,7 @@ export class SmartAutocomplete {
 
     // 5. Ta bort dubletter och begränsa antal
     const uniqueSuggestions = this.removeDuplicates(rankedSuggestions);
-    
+
     return uniqueSuggestions.slice(0, this.MAX_SUGGESTIONS);
   }
 
@@ -109,7 +122,13 @@ export class SmartAutocomplete {
   }
 
   // Fuzzy search med Fuse.js
-  private getFuzzyMatches(input: string): Suggestion[] {
+  private getFuzzyMatches(input: string, language: Language): Suggestion[] {
+    if (!this.fuse) {
+      this.initializeFuse(language);
+    }
+
+    if (!this.fuse) return [];
+
     const results = this.fuse.search(input);
 
     // Performance logging removed for production
@@ -124,12 +143,13 @@ export class SmartAutocomplete {
   }
 
   // Sök i användarens historik
-  private getHistoryMatches(input: string): Suggestion[] {
+  private getHistoryMatches(input: string, language: Language): Suggestion[] {
     const matches: Suggestion[] = [];
+    const db = getProductDatabase(language);
 
     for (const [productName, data] of this.userHistory) {
       const normalizedProduct = productName.toLowerCase();
-      
+
       // Enkel substring-match för historiska produkter
       if (normalizedProduct.includes(input) || normalizedProduct.startsWith(input)) {
         // Beräkna score baserat på användningsfrekvens och tid
@@ -139,7 +159,7 @@ export class SmartAutocomplete {
 
         matches.push({
           name: productName,
-          category: data.category || getCategoryForProduct(productName),
+          category: data.category || db.getCategoryForProduct(productName) || 'ovrigt',
           score: baseScore * this.HISTORY_WEIGHT,
           reason: 'history' as const
         });
@@ -202,10 +222,11 @@ export class SmartAutocomplete {
   }
 
   // Lär sig från användarens val
-  learn(selectedProduct: string): void {
+  learn(selectedProduct: string, language: Language = 'en'): void {
     const key = selectedProduct.toLowerCase();
     const existing = this.userHistory.get(key);
-    
+    const db = getProductDatabase(language);
+
     if (existing) {
       existing.count += 1;
       existing.lastUsed = Date.now();
@@ -213,10 +234,10 @@ export class SmartAutocomplete {
       this.userHistory.set(key, {
         count: 1,
         lastUsed: Date.now(),
-        category: getCategoryForProduct(selectedProduct)
+        category: db.getCategoryForProduct(selectedProduct) || 'ovrigt'
       });
     }
-    
+
     // Spara till localStorage
     this.saveUserHistory();
   }

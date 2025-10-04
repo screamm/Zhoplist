@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTodo } from '../context/TodoContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getCategoryById } from '../types/categories';
-import { X, Plus, ShoppingBag, Minus, Edit3 } from 'lucide-react';
+import { X, Plus, ShoppingBag, Minus, Edit3, Check } from 'lucide-react';
 import SmartAutocomplete from './SmartAutocomplete';
 import type { SmartAutocompleteRef } from './SmartAutocomplete';
 import { type Suggestion } from '../utils/smartAutocomplete';
@@ -19,7 +19,7 @@ interface AddItemModalProps {
 
 export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, defaultCategory }) => {
   const { createTodo } = useTodo();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [title, setTitle] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [category, setCategory] = useState(defaultCategory || '');
@@ -171,15 +171,32 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
         category: finalCategory,
         priority: 0
       });
-      
+
       // Lägg till i autocomplete för framtiden
       const { smartAutocomplete } = await import('../utils/smartAutocomplete');
-      smartAutocomplete.learn(title.trim());
-      
+      smartAutocomplete.learn(title.trim(), language);
+
+      // Get category name for toast message
+      const categoryData = await getCategoryById(finalCategory);
+      const categoryName = categoryData?.name || 'Unknown';
+
+      // Show success toast
+      showToast({
+        type: 'success',
+        title: t.itemAdded || 'Item added',
+        message: `${title.trim()} ${t.addedToCategory || 'added to'} ${categoryName}`,
+        duration: 3000
+      });
+
+      // Reset form but keep modal open
       setTitle('');
       setQuantity(1);
       setCategory('');
-      onClose();
+
+      // Focus input again for next item
+      setTimeout(() => {
+        autocompleteRef.current?.focus();
+      }, 100);
     } catch (error) {
       console.error('Failed to create item:', error);
     } finally {
@@ -201,18 +218,35 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
       
       // Lägg till i autocomplete för framtiden
       const { smartAutocomplete } = await import('../utils/smartAutocomplete');
-      smartAutocomplete.learn(title.trim());
-      
+      smartAutocomplete.learn(pendingItem.title, language);
+
       // Spara produkten i custom products för framtida användning
       const productName = pendingItem.title.replace(/\s\(\d+st\)$/, ''); // Remove quantity
       customProducts.addProduct(productName, selectedCategoryId);
-      
+
+      // Get category name for toast message
+      const categoryData = await getCategoryById(selectedCategoryId);
+      const categoryName = categoryData?.name || 'Unknown';
+
+      // Show success toast
+      showToast({
+        type: 'success',
+        title: t.itemAdded || 'Item added',
+        message: `${pendingItem.title} ${t.addedToCategory || 'added to'} ${categoryName}`,
+        duration: 3000
+      });
+
+      // Reset form but keep modal open
       setTitle('');
       setQuantity(1);
       setCategory('');
       setPendingItem(null);
       setShowCategoryModal(false);
-      onClose();
+
+      // Focus input again for next item
+      setTimeout(() => {
+        autocompleteRef.current?.focus();
+      }, 100);
     } catch (error) {
       console.error('Failed to create item after category selection:', error);
     } finally {
@@ -233,6 +267,8 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
   };
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const [touchStart, setTouchStart] = useState<number>(0);
+  const [touchEnd, setTouchEnd] = useState<number>(0);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -240,17 +276,36 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
     }
   }, [isOpen]);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart - touchEnd < -100) { // Swipe down > 100px
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-gray-900 rounded-t-3xl sm:rounded-2xl w-full max-w-md shadow-2xl border-t border-gray-700 sm:border border-gray-800 transform transition-all duration-300 ease-out">
+      <div
+        className="bg-gray-900 rounded-t-3xl sm:rounded-2xl w-full max-w-md shadow-2xl border-t border-gray-700 sm:border border-gray-800 transform transition-all duration-300 ease-out"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <div className="p-4 sm:p-6 border-b border-gray-800">
           {/* Handle bar for mobile */}
-          <div className="sm:hidden w-12 h-1 bg-gray-600 rounded-full mx-auto mb-4"></div>
+          <div className="sm:hidden w-12 h-1 bg-gray-600 rounded-full mx-auto mb-4 cursor-pointer"></div>
           
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -296,12 +351,13 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
               className="w-full px-4 py-4 bg-gray-800/50 border border-gray-600 rounded-2xl text-white placeholder-gray-500 focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all text-base touch-target"
               showCategoryHints={true}
               maxSuggestions={5}
+              language={language}
             />
           </div>
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">
-              Antal
+              {t.quantity}
             </label>
             <div className="flex items-center space-x-3">
               <button
@@ -337,7 +393,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
           {/* Kategori-sektion */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">
-              Kategori
+              {t.category}
             </label>
             <div
               className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-600 rounded-2xl cursor-pointer hover:bg-gray-800 transition-colors"
@@ -354,7 +410,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
                     </div>
                     <div>
                       <p className="text-white font-medium">{getCategoryName(category)}</p>
-                      <p className="text-sm text-gray-400">Kategori vald</p>
+                      <p className="text-sm text-gray-400">{t.categorySelected}</p>
                     </div>
                   </>
                 ) : (
@@ -363,8 +419,8 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
                       <ShoppingBag className="w-5 h-5 text-gray-400" />
                     </div>
                     <div>
-                      <p className="text-gray-400 font-medium">Ingen kategori vald</p>
-                      <p className="text-sm text-gray-500">Klicka för att välja</p>
+                      <p className="text-gray-400 font-medium">{t.noCategorySelected}</p>
+                      <p className="text-sm text-gray-500">{t.clickToSelect}</p>
                     </div>
                   </>
                 )}
@@ -386,7 +442,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, def
               className="flex-1 px-4 py-4 bg-gray-800/50 text-gray-300 rounded-2xl hover:bg-gray-700 transition-all text-base font-medium touch-target"
               disabled={isSubmitting}
             >
-              {t.cancel}
+              {t.close}
             </button>
             <button
               type="submit"

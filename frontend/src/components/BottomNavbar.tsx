@@ -24,7 +24,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({
     <div className={`
       fixed bottom-0 left-0 right-0 z-40
       bg-white/10 backdrop-blur-xl border-t border-white/20
-      pt-4 pb-8 py-3 safe-area-bottom bottom-nav-container
+      pt-3 pb-8 py-3 pr-2 pl-2 safe-area-bottom bottom-nav-container
       ${className}
     `}>
       <div className="grid grid-cols-3 gap-4 items-center max-w-lg mx-auto">

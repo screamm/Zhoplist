@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTodo } from '../context/TodoContext.js';
 import { useLanguage } from '../context/LanguageContext.js';
 import type { Category } from '../types/categories.js';
-import { Settings, Save, FolderOpen, FileText, Languages } from 'lucide-react';
+import { Settings, Save, FolderOpen, FileText, Languages, ChevronRight, Check, X } from 'lucide-react';
 import type { Todo } from '../types/index.js';
 import { AddItemModal } from './AddItemModal.js';
 import { AddCategoryModal } from './AddCategoryModal.js';
@@ -288,6 +288,7 @@ export const ModernShoppingList: React.FC = () => {
   const [createListCode, setCreateListCode] = useState('');
   const [showGeneratedCode, setShowGeneratedCode] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   // Debug logging
   
@@ -619,7 +620,7 @@ export const ModernShoppingList: React.FC = () => {
       background: 'linear-gradient(180deg, #001122 0%, #1e3a8a 100%)',
       fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif'
     }}>
-      {/* Fallback Banner - Visas om AdMob inte fungerar */}
+      {/* REMOVED: Premium upgrade - running ads for everyone
       {!isPremiumUser() && showFallbackBanner && (
         <div style={{
           position: 'fixed',
@@ -666,6 +667,7 @@ export const ModernShoppingList: React.FC = () => {
           </button>
         </div>
       )}
+      */}
 
       {/* Header */}
       <div style={{
@@ -802,22 +804,22 @@ export const ModernShoppingList: React.FC = () => {
                   ➕
                 </div>
                 <div>
-                  <h3 style={{ 
+                  <h3 style={{
                     fontSize: '17px',
                     fontWeight: '600',
                     color: '#ffffff',
                     margin: 0,
                     letterSpacing: '-0.01em'
                   }}>
-                    Lägg till kategori
+                    {t.addCategoryTitle}
                   </h3>
-                  <p style={{ 
+                  <p style={{
                     fontSize: '14px',
                     color: 'rgba(255, 255, 255, 0.5)',
                     margin: 0,
                     marginTop: '2px'
                   }}>
-                    Skapa ny kategori
+                    {t.createNewCategory}
                   </p>
                 </div>
               </div>
@@ -873,14 +875,14 @@ export const ModernShoppingList: React.FC = () => {
                 color: 'white',
                 letterSpacing: '-0.02em'
               }}>
-                Inställningar
+                {t.settingsTitle}
               </h3>
               <p style={{
                 margin: '4px 0 0',
                 fontSize: '14px',
                 color: 'rgba(255, 255, 255, 0.6)'
               }}>
-                Hantera listor och språk
+                {t.manageListsLanguage}
               </p>
               {/* Close button */}
               <button
@@ -964,7 +966,7 @@ export const ModernShoppingList: React.FC = () => {
                 <div>
                   <div>{t.saveList}</div>
                   <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
-                    Spara aktuell lista
+                    {t.saveCurrentList}
                   </div>
                 </div>
               </button>
@@ -1015,7 +1017,7 @@ export const ModernShoppingList: React.FC = () => {
                 <div>
                   <div>{t.openList}</div>
                   <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
-                    Öppna sparad lista
+                    {t.openSavedList}
                   </div>
                 </div>
               </button>
@@ -1063,7 +1065,7 @@ export const ModernShoppingList: React.FC = () => {
                 <div>
                   <div>{t.newList}</div>
                   <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
-                    Skapa ny tom lista
+                    {t.createEmptyList}
                   </div>
                 </div>
               </button>
@@ -1112,9 +1114,9 @@ export const ModernShoppingList: React.FC = () => {
                   <span style={{ fontSize: '18px', color: '#f97316' }}>🔗</span>
                 </div>
                 <div>
-                  <div>Gå med i lista</div>
+                  <div>{t.joinListCode}</div>
                   <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
-                    Ange listkod för delning
+                    {t.enterCodeForSharing}
                   </div>
                 </div>
               </button>
@@ -1171,14 +1173,14 @@ export const ModernShoppingList: React.FC = () => {
                   <span style={{ fontSize: '18px', color: '#8b4513' }}>📋</span>
                 </div>
                 <div>
-                  <div>{sessionManager.getSessionInfo().isCustomListCode ? 'Visa listkod' : 'Skapa listkod'}</div>
+                  <div>{sessionManager.getSessionInfo().isCustomListCode ? t.createListCode : t.createListCode}</div>
                   <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
-                    {sessionManager.getSessionInfo().isCustomListCode ? `Kod: ${sessionManager.getSessionInfo().displayCode || 'okänd'}` : 'För delning med andra'}
+                    {sessionManager.getSessionInfo().isCustomListCode ? `${sessionManager.getSessionInfo().displayCode || ''}` : t.forSharingWithOthers}
                   </div>
                 </div>
               </button>
 
-              {/* Premium Upgrade - Only show if not premium */}
+              {/* REMOVED: Premium Upgrade - running ads for everyone
               {!isPremiumUser() && (
                 <button
                   onClick={() => {
@@ -1223,13 +1225,14 @@ export const ModernShoppingList: React.FC = () => {
                     <span style={{ fontSize: '18px', color: '#22c55e' }}>✨</span>
                   </div>
                   <div>
-                    <div>Slipp reklam</div>
+                    <div>{t.removeAds}</div>
                     <div style={{ fontSize: '13px', color: 'rgba(34, 197, 94, 0.8)', marginTop: '2px' }}>
-                      Endast 69 kr - engångsköp
+                      {t.oneTimePurchase}
                     </div>
                   </div>
                 </button>
               )}
+              */}
 
               {/* Delete Lists - Only show if there are saved lists */}
               {savedLists.length > 0 && (
@@ -1319,63 +1322,41 @@ export const ModernShoppingList: React.FC = () => {
                 {t.language}
               </div>
 
-              {/* Language Buttons */}
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                <button
-                  onClick={() => setLanguage('sv')}
-                  style={{
-                    flex: 1,
-                    padding: '12px 16px',
-                    backgroundColor: language === 'sv' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                    borderRadius: '12px',
-                    color: language === 'sv' ? '#22c55e' : 'rgba(255, 255, 255, 0.7)',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    border: language === 'sv' ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (language !== 'sv') {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (language !== 'sv') {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                    }
-                  }}
-                >
-                  Svenska
-                </button>
-                <button
-                  onClick={() => setLanguage('en')}
-                  style={{
-                    flex: 1,
-                    padding: '12px 16px',
-                    backgroundColor: language === 'en' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                    borderRadius: '12px',
-                    color: language === 'en' ? '#22c55e' : 'rgba(255, 255, 255, 0.7)',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    border: language === 'en' ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (language !== 'en') {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (language !== 'en') {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                    }
-                  }}
-                >
-                  English
-                </button>
-              </div>
+              {/* Language Selection Button */}
+              <button
+                onClick={() => setShowLanguageModal(true)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '12px',
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '12px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                }}
+              >
+                <span>
+                  {language === 'sv' && t.swedish}
+                  {language === 'en' && t.english}
+                  {language === 'es' && t.spanish}
+                  {language === 'hi' && t.hindi}
+                  {language === 'zh' && t.chinese}
+                </span>
+                <ChevronRight style={{ width: '16px', height: '16px' }} />
+              </button>
               
               {/* Ladda exempeldata-knappen är bortkommenterad
               {filteredTodos.length === 0 && (
@@ -1832,141 +1813,64 @@ export const ModernShoppingList: React.FC = () => {
 
       {/* Join List Dialog */}
       {showJoinListDialog && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1100
-        }}>
-          <div style={{
-            backgroundColor: '#1e293b',
-            borderRadius: '12px',
-            padding: '24px',
-            width: '350px',
-            maxWidth: '90vw'
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '16px'
-            }}>
-              <h3 style={{
-                color: 'white',
-                fontSize: '18px',
-                fontWeight: '600',
-                margin: 0
-              }}>
-                Gå med i lista
-              </h3>
-              <button
-                onClick={() => {
-                  setShowJoinListDialog(false);
-                  setJoinListCode('');
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  fontSize: '20px',
-                  cursor: 'pointer'
-                }}
-              >
-                ×
-              </button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-gray-900 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-lg shadow-2xl border-t sm:border border-gray-700 overflow-hidden">
+
+            {/* Mobile handle bar */}
+            <div className="sm:hidden w-12 h-1 bg-gray-600 rounded-full mx-auto mt-3 mb-2"></div>
+
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-white">Gå med i lista</h2>
+                  <p className="text-sm text-gray-400 mt-1">Ange listkoden som du fått från någon annan för att få tillgång till deras lista.</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowJoinListDialog(false);
+                    setJoinListCode('');
+                  }}
+                  className="p-2 rounded-xl hover:bg-gray-800 transition-colors touch-target"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
             </div>
 
-            <p style={{
-              color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: '14px',
-              marginBottom: '16px',
-              lineHeight: '1.4'
-            }}>
-              Ange listkoden som du fått från någon annan för att få tillgång till deras lista.
-            </p>
+            <div className="p-6 space-y-6">
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={joinListCode}
+                  onChange={(e) => setJoinListCode(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      joinList();
+                    }
+                  }}
+                  placeholder="t.ex. familjen-handlar"
+                  className="w-full px-4 py-4 bg-gray-800/50 border border-gray-600 rounded-2xl text-white placeholder-gray-500 focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all text-base touch-target"
+                  autoFocus
+                />
+              </div>
+            </div>
 
-            <input
-              type="text"
-              value={joinListCode}
-              onChange={(e) => setJoinListCode(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  joinList();
-                }
-              }}
-              placeholder="t.ex. familjen-handlar"
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                color: 'white',
-                fontSize: '14px',
-                marginBottom: '20px',
-                outline: 'none'
-              }}
-            />
-
-            <div style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '12px'
-            }}>
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-800 flex gap-3 pb-safe">
               <button
                 onClick={() => {
                   setShowJoinListDialog(false);
                   setJoinListCode('');
                 }}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  color: 'white',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                }}
+                className="flex-1 px-4 py-4 bg-gray-800/50 text-gray-300 rounded-2xl hover:bg-gray-700 transition-all font-medium touch-target"
               >
                 Avbryt
               </button>
               <button
                 onClick={joinList}
                 disabled={!joinListCode.trim()}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  backgroundColor: joinListCode.trim() ? '#f97316' : 'rgba(255, 255, 255, 0.1)',
-                  color: 'white',
-                  fontSize: '14px',
-                  cursor: joinListCode.trim() ? 'pointer' : 'not-allowed',
-                  transition: 'all 0.2s ease',
-                  opacity: joinListCode.trim() ? 1 : 0.5
-                }}
-                onMouseEnter={(e) => {
-                  if (joinListCode.trim()) {
-                    e.currentTarget.style.backgroundColor = '#ea580c';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (joinListCode.trim()) {
-                    e.currentTarget.style.backgroundColor = '#f97316';
-                  }
-                }}
+                className="flex-2 px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-2xl hover:from-purple-500 hover:to-purple-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg shadow-purple-600/30 touch-target"
               >
                 Gå med
               </button>
@@ -1977,150 +1881,65 @@ export const ModernShoppingList: React.FC = () => {
 
       {/* Create List Code Dialog */}
       {showCreateListCodeDialog && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1100
-        }}>
-          <div style={{
-            backgroundColor: '#1e293b',
-            borderRadius: '12px',
-            padding: '24px',
-            width: '350px',
-            maxWidth: '90vw'
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '16px'
-            }}>
-              <h3 style={{
-                color: 'white',
-                fontSize: '18px',
-                fontWeight: '600',
-                margin: 0
-              }}>
-                Skapa listkod
-              </h3>
-              <button
-                onClick={() => {
-                  setShowCreateListCodeDialog(false);
-                  setCreateListCode('');
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  fontSize: '20px',
-                  cursor: 'pointer'
-                }}
-              >
-                ×
-              </button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-gray-900 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-lg shadow-2xl border-t sm:border border-gray-700 overflow-hidden">
+
+            {/* Mobile handle bar */}
+            <div className="sm:hidden w-12 h-1 bg-gray-600 rounded-full mx-auto mt-3 mb-2"></div>
+
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-white">Skapa listkod</h2>
+                  <p className="text-sm text-gray-400 mt-1">Skapa en unik listkod som du kan dela med familj och vänner för att komma åt samma inköpslista.</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowCreateListCodeDialog(false);
+                    setCreateListCode('');
+                  }}
+                  className="p-2 rounded-xl hover:bg-gray-800 transition-colors touch-target"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
             </div>
 
-            <p style={{
-              color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: '14px',
-              marginBottom: '16px',
-              lineHeight: '1.4'
-            }}>
-              Skapa en unik listkod som du kan dela med familj och vänner för att komma åt samma inköpslista.
-            </p>
+            <div className="p-6 space-y-6">
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={createListCode}
+                  onChange={(e) => setCreateListCode(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      createCustomListCode();
+                    }
+                  }}
+                  placeholder="t.ex. familjen-handlar"
+                  className="w-full px-4 py-4 bg-gray-800/50 border border-gray-600 rounded-2xl text-white placeholder-gray-500 focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all text-base touch-target"
+                  autoFocus
+                />
+                <p className="text-xs text-gray-500">Endast bokstäver, siffror och bindestreck. Minst 3 tecken.</p>
+              </div>
+            </div>
 
-            <input
-              type="text"
-              value={createListCode}
-              onChange={(e) => setCreateListCode(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  createCustomListCode();
-                }
-              }}
-              placeholder="t.ex. familjen-handlar"
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                color: 'white',
-                fontSize: '14px',
-                marginBottom: '8px',
-                outline: 'none'
-              }}
-            />
-
-            <p style={{
-              color: 'rgba(255, 255, 255, 0.5)',
-              fontSize: '12px',
-              marginBottom: '20px',
-              lineHeight: '1.3'
-            }}>
-              Endast bokstäver, siffror och bindestreck. Minst 3 tecken.
-            </p>
-
-            <div style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '12px'
-            }}>
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-800 flex gap-3 pb-safe">
               <button
                 onClick={() => {
                   setShowCreateListCodeDialog(false);
                   setCreateListCode('');
                 }}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  color: 'white',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                }}
+                className="flex-1 px-4 py-4 bg-gray-800/50 text-gray-300 rounded-2xl hover:bg-gray-700 transition-all font-medium touch-target"
               >
                 Avbryt
               </button>
               <button
                 onClick={() => createCustomListCode(false)}
                 disabled={!createListCode.trim()}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  backgroundColor: createListCode.trim() ? '#8b4513' : 'rgba(255, 255, 255, 0.1)',
-                  color: 'white',
-                  fontSize: '14px',
-                  cursor: createListCode.trim() ? 'pointer' : 'not-allowed',
-                  transition: 'all 0.2s ease',
-                  opacity: createListCode.trim() ? 1 : 0.5
-                }}
-                onMouseEnter={(e) => {
-                  if (createListCode.trim()) {
-                    e.currentTarget.style.backgroundColor = '#a0522d';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (createListCode.trim()) {
-                    e.currentTarget.style.backgroundColor = '#8b4513';
-                  }
-                }}
+                className="flex-2 px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-2xl hover:from-purple-500 hover:to-purple-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg shadow-purple-600/30 touch-target"
               >
                 Skapa
               </button>
@@ -2131,171 +1950,70 @@ export const ModernShoppingList: React.FC = () => {
 
       {/* Display Generated Code Modal */}
       {showGeneratedCode && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 10001,
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-        }}>
-          <div style={{
-            backgroundColor: 'rgba(30, 58, 138, 0.95)',
-            borderRadius: '20px',
-            padding: '24px',
-            width: '90%',
-            maxWidth: '400px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '20px'
-            }}>
-              <h3 style={{
-                color: 'white',
-                fontSize: '18px',
-                fontWeight: '600',
-                margin: 0
-              }}>
-                Din listkod
-              </h3>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-gray-900 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-lg shadow-2xl border-t sm:border border-gray-700 overflow-hidden">
+
+            {/* Mobile handle bar */}
+            <div className="sm:hidden w-12 h-1 bg-gray-600 rounded-full mx-auto mt-3 mb-2"></div>
+
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-white">Din listkod</h2>
+                  <p className="text-sm text-gray-400 mt-1">Dela denna kod med familj och vänner så kan ni redigera samma lista tillsammans.</p>
+                </div>
+                <button
+                  onClick={() => setShowGeneratedCode(false)}
+                  className="p-2 rounded-xl hover:bg-gray-800 transition-colors touch-target"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Code Display */}
+              <div className="bg-gray-800/50 border-2 border-yellow-500/30 rounded-2xl p-6 text-center">
+                <div className="text-3xl font-bold text-yellow-400 tracking-widest mb-2 font-mono">
+                  {generatedCode}
+                </div>
+                <p className="text-xs text-gray-500">Klicka för att kopiera</p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-800 flex flex-col gap-3 pb-safe">
               <button
-                onClick={() => setShowGeneratedCode(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  padding: '0',
-                  width: '32px',
-                  height: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '50%',
-                  transition: 'all 0.2s ease'
+                onClick={() => {
+                  navigator.clipboard.writeText(generatedCode);
+                  showToast({
+                    type: 'success',
+                    title: 'Kopierad!',
+                    message: 'Listkoden har kopierats till urklipp',
+                    duration: 3000
+                  });
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                  e.currentTarget.style.color = 'white';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
-                }}
+                className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-2xl hover:from-purple-500 hover:to-purple-400 transition-all font-semibold shadow-lg shadow-purple-600/30 touch-target"
               >
-                ×
+                Kopiera till urklipp
+              </button>
+              <button
+                onClick={() => {
+                  const shareUrl = `${window.location.origin}?lista=${generatedCode}`;
+                  navigator.clipboard.writeText(shareUrl);
+                  showToast({
+                    type: 'success',
+                    title: 'Länk kopierad!',
+                    message: 'Delningslänken har kopierats',
+                    duration: 3000
+                  });
+                }}
+                className="w-full px-4 py-4 bg-gray-800/50 text-gray-300 rounded-2xl hover:bg-gray-700 transition-all font-medium touch-target"
+              >
+                Kopiera delningslänk
               </button>
             </div>
-
-            <p style={{
-              color: 'rgba(255, 255, 255, 0.8)',
-              fontSize: '14px',
-              marginBottom: '20px'
-            }}>
-              Dela denna kod med familj och vänner så kan ni redigera samma lista tillsammans.
-            </p>
-
-            <div style={{
-              backgroundColor: 'rgba(0, 0, 0, 0.3)',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '20px',
-              textAlign: 'center',
-              border: '2px solid rgba(139, 69, 19, 0.5)'
-            }}>
-              <div style={{
-                fontSize: '24px',
-                fontWeight: '600',
-                color: '#fbbf24',
-                letterSpacing: '2px',
-                marginBottom: '8px',
-                fontFamily: 'monospace'
-              }}>
-                {generatedCode}
-              </div>
-              <div style={{
-                fontSize: '12px',
-                color: 'rgba(255, 255, 255, 0.6)'
-              }}>
-                Klicka för att kopiera
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(generatedCode);
-                showToast({
-                  type: 'success',
-                  title: 'Kopierad!',
-                  message: 'Listkoden har kopierats till urklipp',
-                  duration: 3000
-                });
-              }}
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: 'none',
-                backgroundColor: '#8b4513',
-                color: 'white',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#a0522d';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#8b4513';
-              }}
-            >
-              Kopiera till urklipp
-            </button>
-
-            <button
-              onClick={() => {
-                const shareUrl = `${window.location.origin}?lista=${generatedCode}`;
-                navigator.clipboard.writeText(shareUrl);
-                showToast({
-                  type: 'success',
-                  title: 'Länk kopierad!',
-                  message: 'Delningslänken har kopierats',
-                  duration: 3000
-                });
-              }}
-              style={{
-                width: '100%',
-                padding: '12px',
-                marginTop: '8px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                color: 'white',
-                fontSize: '14px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-              }}
-            >
-              Kopiera delningslänk
-            </button>
           </div>
         </div>
       )}
@@ -2340,7 +2058,128 @@ export const ModernShoppingList: React.FC = () => {
         category={editingCategory || undefined}
       />
 
-      
+      {/* Language Selection Modal */}
+      {showLanguageModal && (
+        <div
+          onClick={() => setShowLanguageModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '16px'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#1f2937',
+              borderRadius: '20px',
+              width: '100%',
+              maxWidth: '400px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              padding: '20px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <h3 style={{
+                margin: 0,
+                fontSize: '18px',
+                fontWeight: '600',
+                color: 'rgba(255, 255, 255, 0.9)'
+              }}>
+                {t.language}
+              </h3>
+              <button
+                onClick={() => setShowLanguageModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <X style={{ width: '20px', height: '20px' }} />
+              </button>
+            </div>
+
+            {/* Language Options */}
+            <div style={{ padding: '12px' }}>
+              {[
+                { code: 'en', name: t.english },
+                { code: 'sv', name: t.swedish },
+                { code: 'es', name: t.spanish },
+                { code: 'hi', name: t.hindi },
+                { code: 'zh', name: t.chinese }
+              ].map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    setLanguage(lang.code as any);
+                    setShowLanguageModal(false);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '16px 20px',
+                    marginBottom: '8px',
+                    backgroundColor: language === lang.code
+                      ? 'rgba(34, 197, 94, 0.15)'
+                      : 'rgba(255, 255, 255, 0.05)',
+                    border: language === lang.code
+                      ? '2px solid rgba(34, 197, 94, 0.4)'
+                      : '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    color: language === lang.code
+                      ? '#22c55e'
+                      : 'rgba(255, 255, 255, 0.8)',
+                    fontSize: '15px',
+                    fontWeight: language === lang.code ? '600' : '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    textAlign: 'left',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (language !== lang.code) {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (language !== lang.code) {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    }
+                  }}
+                >
+                  <span>{lang.name}</span>
+                  {language === lang.code && (
+                    <Check style={{ width: '20px', height: '20px', color: '#22c55e' }} />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+
       {/* Bottom Navigation */}
       <BottomNavbar
         onAddItem={() => setIsAddModalOpen(true)}

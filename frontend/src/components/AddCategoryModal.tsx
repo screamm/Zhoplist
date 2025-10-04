@@ -188,7 +188,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-white">{t.addNewCategory}</h2>
-              <p className="text-sm text-gray-400 mt-1">Skapa en egen kategori för dina varor</p>
+              <p className="text-sm text-gray-400 mt-1">{t.categoryDescription}</p>
             </div>
             <button
               onClick={handleClose}
@@ -205,25 +205,25 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
             {/* Category Name */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
-                Kategorinamn *
+                {t.categoryName} *
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="t.ex. Husdjur, Sport, Elektronik"
+                placeholder={t.categoryPlaceholder}
                 className="w-full px-4 py-4 bg-gray-800/50 border border-gray-600 rounded-2xl text-white placeholder-gray-500 focus:border-purple-500 focus:bg-gray-800 focus:outline-none transition-all text-base touch-target"
                 maxLength={20}
                 autoFocus
               />
-              <p className="text-xs text-gray-500">{name.length}/20 tecken</p>
+              <p className="text-xs text-gray-500">{name.length}/20 {t.charactersRemaining}</p>
             </div>
 
             {/* Icon Selection */}
             <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-300">
                 <Hash className="w-4 h-4 inline mr-1" />
-                Välj ikon
+                {t.chooseIcon}
               </label>
               <div className="grid grid-cols-6 gap-3">
                 {(showAllIcons ? ICON_TYPES : ICON_TYPES.slice(0, 5)).map((iconType, index) => (
@@ -261,9 +261,9 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
             <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-300">
                 <Palette className="w-4 h-4 inline mr-1" />
-                Välj färg
+                {t.chooseColor}
               </label>
-              <div className="grid grid-cols-10 gap-2">
+              <div className={`grid gap-2 ${showAllColors ? 'grid-cols-10' : 'grid-cols-5'}`}>
                 {(showAllColors ? DEFAULT_COLORS : DEFAULT_COLORS.slice(0, 9)).map((color, index) => (
                   <button
                     key={index}
@@ -296,16 +296,16 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
 
             {/* Preview */}
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-300">Förhandsvisning</label>
+              <label className="block text-sm font-medium text-gray-300">{t.preview}</label>
               <div className="flex items-center justify-center p-4 bg-gray-800/30 rounded-2xl border border-gray-700">
-                <div 
+                <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center mr-3"
                   style={{ backgroundColor: selectedColor + '30' }}
                 >
                   <CustomIcon type={selectedIcon} color={selectedColor} />
                 </div>
                 <span className="text-white font-medium">
-                  {name || 'Din kategori'}
+                  {name || t.yourCategory}
                 </span>
               </div>
             </div>
@@ -330,10 +330,10 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
               {isSubmitting ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block mr-2"></div>
-                  Skapar...
+                  {t.creating}...
                 </>
               ) : (
-                'Skapa kategori'
+                t.createCategoryButton
               )}
             </button>
           </div>
